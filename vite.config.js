@@ -10,9 +10,9 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
-    minify: 'terser',
+    minify: 'esbuild',
   },
   server: {
-    host: true, // Allow external access for testing
+    host: true,
   },
 })
