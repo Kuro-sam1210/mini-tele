@@ -12,8 +12,8 @@ const Game = ({ user, updateBalance, navigate, gameData }) => {
 
   useEffect(() => {
     if (tg) {
-      tg.setHeaderColor('#0a0e1a');
-      tg.setBackgroundColor('#0a0e1a');
+      tg.setHeaderColor('#000000');
+      tg.setBackgroundColor('#000000');
       
       tg.BackButton?.show();
       tg.BackButton?.onClick(() => navigate('home'));

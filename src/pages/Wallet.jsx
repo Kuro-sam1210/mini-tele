@@ -5,18 +5,23 @@ const Wallet = ({ user, updateBalance, navigate }) => {
   const tg = window.Telegram?.WebApp;
   const [view, setView] = useState('main');
   const [selectedAmount, setSelectedAmount] = useState(null);
+  const [isInTelegram, setIsInTelegram] = useState(false);
 
   const quickAmounts = [100, 500, 1000, 2000, 5000];
 
   useEffect(() => {
-    if (tg) {
-      tg.setHeaderColor('#0a0e1a');
-      tg.setBackgroundColor('#0a0e1a');
+    // Check if we're in Telegram environment
+    const inTelegram = tg && tg.initData && tg.initData.length > 0;
+    setIsInTelegram(inTelegram);
+    
+    if (inTelegram) {
+      tg.setHeaderColor('#000000');
+      tg.setBackgroundColor('#000000');
     }
   }, [tg]);
 
   useEffect(() => {
-    if (!tg?.MainButton) return;
+    if (!isInTelegram || !tg?.MainButton) return;
 
     if (view === 'deposit' && selectedAmount) {
       tg.MainButton.setText(`Deposit $${selectedAmount}`);
@@ -47,7 +52,7 @@ const Wallet = ({ user, updateBalance, navigate }) => {
     return () => {
       tg.MainButton.offClick();
     };
-  }, [view, selectedAmount, tg, updateBalance]);
+  }, [view, selectedAmount, tg, updateBalance, isInTelegram]);
 
   const transactions = [
     { type: 'deposit', amount: 500, date: 'Today, 2:30 PM' },
@@ -137,7 +142,7 @@ const Wallet = ({ user, updateBalance, navigate }) => {
         )}
 
         {/* Fallback button */}
-        {!tg?.MainButton && selectedAmount && (
+        {!isInTelegram && selectedAmount && (
           <div className="p-4">
             <button 
               onClick={() => {

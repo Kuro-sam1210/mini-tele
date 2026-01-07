@@ -1,76 +1,90 @@
-import { useEffect } from 'react';
-import { Sparkles, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Zap } from 'lucide-react';
 
 const Landing = ({ navigate }) => {
   const tg = window.Telegram?.WebApp;
+  const [showFallbackButton, setShowFallbackButton] = useState(false);
 
   useEffect(() => {
-    if (tg) {
-      tg.setHeaderColor('#0a0e1a');
-      tg.setBackgroundColor('#0a0e1a');
+    // Check if we're in Telegram environment
+    const isInTelegram = tg && tg.initData && tg.initData.length > 0;
+    
+    if (isInTelegram) {
+      tg.setHeaderColor('#000000');
+      tg.setBackgroundColor('#000000');
       tg.expand?.();
       tg.ready?.();
 
-      tg.MainButton?.setText('🎰 Start Playing');
+      tg.MainButton?.setText('Enter Golden Age Cash');
       tg.MainButton?.show();
       tg.MainButton?.onClick(() => navigate('home'));
+      setShowFallbackButton(false);
+    } else {
+      // Not in Telegram, show fallback button
+      setShowFallbackButton(true);
     }
 
     return () => {
-      tg?.MainButton?.hide();
-      tg?.MainButton?.offClick();
+      if (isInTelegram) {
+        tg?.MainButton?.hide();
+        tg?.MainButton?.offClick();
+      }
     };
   }, [tg, navigate]);
 
   return (
-    <div className="page items-center justify-center px-6">
+    <div className="landing-container">
       {/* Logo Area */}
-      <div className="text-center mb-8">
-        <div className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-amber-500 via-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/30 animate-float">
-          <span className="text-5xl">🎰</span>
+      <div className="text-center">
+        <div className="landing-logo">
+          <img 
+            src="/casinologo.jpg" 
+            alt="Golden Age Cash Logo"
+            className="w-full h-full object-cover"
+          />
         </div>
         
-        <h1 className="text-3xl font-black text-white mb-2">
-          MEGA CASINO
+        <h1 className="landing-title">
+          Golden Age Cash
         </h1>
-        <p className="text-[var(--text-muted)]">
-          Play & Win Big Prizes
+        <p className="landing-subtitle">
+          Premium Gaming Experience
         </p>
       </div>
 
       {/* Features */}
-      <div className="w-full max-w-xs space-y-3 mb-8">
+      <div className="w-full max-w-sm space-y-4 mb-12">
         {[
-          { icon: '💰', title: 'Huge Jackpots', desc: 'Win up to $100,000' },
-          { icon: '🎁', title: 'Daily Bonuses', desc: 'Free spins every day' },
-          { icon: '⚡', title: 'Instant Payouts', desc: 'Withdraw anytime' },
+          { icon: '💎', title: 'Premium Games', desc: 'Curated selection of elite games' },
+          { icon: '🏆', title: 'VIP Rewards', desc: 'Exclusive bonuses and privileges' },
+          { icon: '⚡', title: 'Instant Payouts', desc: 'Swift and secure transactions' },
         ].map((feature, i) => (
-          <div key={i} className="card p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 flex items-center justify-center">
-              <span className="text-2xl">{feature.icon}</span>
+          <div key={i} className="feature-card">
+            <div className="feature-icon">
+              <span>{feature.icon}</span>
             </div>
-            <div>
-              <p className="font-bold text-white">{feature.title}</p>
-              <p className="text-sm text-[var(--text-muted)]">{feature.desc}</p>
+            <div className="feature-content">
+              <h4>{feature.title}</h4>
+              <p>{feature.desc}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* CTA Button (fallback for non-Telegram) */}
-      {!tg?.MainButton && (
+      {showFallbackButton && (
         <button 
           onClick={() => navigate('home')}
-          className="btn-primary w-full max-w-xs py-4"
+          className="btn-primary w-full max-w-sm py-4"
         >
           <Zap className="w-5 h-5" />
-          Start Playing
+          Enter Golden Age Cash
         </button>
       )}
 
       {/* Footer */}
       <p className="text-xs text-[var(--text-muted)] mt-8 text-center">
-        18+ | Play Responsibly
+        18+ | Play Responsibly | Premium Gaming
       </p>
     </div>
   );

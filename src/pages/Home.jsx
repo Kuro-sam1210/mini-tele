@@ -13,46 +13,46 @@ const Home = ({ user, navigate }) => {
 
   useEffect(() => {
     if (tg) {
-      tg.setHeaderColor('#0a0e1a');
-      tg.setBackgroundColor('#0a0e1a');
+      tg.setHeaderColor('#000000');
+      tg.setBackgroundColor('#000000');
     }
   }, [tg]);
 
   const featuredGames = [
     { 
-      id: 'high-wins', 
-      name: '裸公车区', 
-      subtitle: 'High Wins (PG)', 
-      gradient: 'from-orange-500 via-red-500 to-red-600',
-      icon: '💰'
+      id: 'premium-slots', 
+      name: 'Premium Collection', 
+      subtitle: 'Elite Gaming Experience', 
+      gradient: 'from-black via-emerald-900 to-emerald-800',
+      icon: '💎'
     },
     { 
-      id: 'steady-wins', 
-      name: '规定车区', 
-      subtitle: 'Steady Wins (EGT)', 
-      gradient: 'from-teal-500 via-green-500 to-emerald-600',
-      icon: '🎰'
+      id: 'vip-games', 
+      name: 'VIP Exclusives', 
+      subtitle: 'Members Only Access', 
+      gradient: 'from-emerald-900 via-emerald-800 to-emerald-700',
+      icon: '👑'
     },
   ];
 
   const providers = [
-    { id: 'pg', name: 'PG Slots', icon: '🎰', desc: 'PG Slots' },
-    { id: 'egt', name: 'EGT Slots', icon: '🎲', desc: 'EGT Slots' },
+    { id: 'premium', name: 'Premium Games', icon: '💎', desc: 'Elite Selection' },
+    { id: 'classic', name: 'Classic Games', icon: '🎰', desc: 'Timeless Favorites' },
   ];
 
   const todaysPicks = [
-    { id: 1, gradient: 'from-red-500 to-red-600' },
-    { id: 2, gradient: 'from-amber-500 to-orange-500' },
-    { id: 3, gradient: 'from-purple-500 to-pink-500' },
-    { id: 4, gradient: 'from-blue-500 to-cyan-500' },
-    { id: 5, gradient: 'from-green-500 to-emerald-500' },
+    { id: 1, gradient: 'from-emerald-800 to-emerald-700' },
+    { id: 2, gradient: 'from-emerald-700 to-emerald-600' },
+    { id: 3, gradient: 'from-emerald-600 to-emerald-500' },
+    { id: 4, gradient: 'from-emerald-500 to-emerald-400' },
+    { id: 5, gradient: 'from-emerald-400 to-emerald-300' },
   ];
 
   const games = [
-    { id: 'fortune-tiger', name: 'Fortune Tiger', provider: 'PG Soft', hot: true, thumb: 'from-orange-500 to-red-600' },
-    { id: 'wild-bounty', name: 'Wild Bounty Showdown', provider: 'PG Soft', hot: true, thumb: 'from-red-500 to-pink-600' },
-    { id: 'mahjong-ways', name: 'Mahjong Ways', provider: 'PG Soft', hot: false, thumb: 'from-green-500 to-teal-600' },
-    { id: 'lucky-neko', name: 'Lucky Neko', provider: 'PG Soft', hot: false, thumb: 'from-purple-500 to-indigo-600' },
+    { id: 'golden-fortune', name: 'Golden Fortune', provider: 'Premium', hot: true, thumb: 'from-yellow-600 to-yellow-700' },
+    { id: 'emerald-riches', name: 'Emerald Riches', provider: 'Premium', hot: true, thumb: 'from-emerald-600 to-emerald-700' },
+    { id: 'diamond-dynasty', name: 'Diamond Dynasty', provider: 'Elite', hot: false, thumb: 'from-blue-600 to-blue-700' },
+    { id: 'royal-treasures', name: 'Royal Treasures', provider: 'VIP', hot: false, thumb: 'from-purple-600 to-purple-700' },
   ];
 
   const handleWheelComplete = () => {
@@ -77,7 +77,7 @@ const Home = ({ user, navigate }) => {
           <div className="telegram-icon">
             <span className="text-white text-sm font-bold">✈</span>
           </div>
-          <span className="font-semibold text-white">Telegram Mini App</span>
+          <span className="font-semibold text-white">Golden Age Cash</span>
         </div>
         <div className="balance-chip">
           <div className="coin-icon">$</div>
@@ -103,7 +103,7 @@ const Home = ({ user, navigate }) => {
               </div>
               <div className="featured-card-content">
                 <div className="flex items-center gap-2">
-                  <Flame className="w-4 h-4 text-orange-300" />
+                  <span className="w-2 h-2 bg-[var(--gold)] rounded-full animate-pulse"></span>
                 </div>
                 <div>
                   <div className="featured-card-title">{game.name}</div>
@@ -170,24 +170,24 @@ const Home = ({ user, navigate }) => {
             onClick={() => setShowWheel(true)}
             className="bonus-card"
           >
-            <div className="bonus-icon bg-gradient-to-br from-purple-500 to-pink-600">
+            <div className="bonus-icon bg-gradient-to-br from-emerald-600 to-emerald-700">
               <Gift className="w-6 h-6 text-white" />
             </div>
             <div className="bonus-content">
-              <h3>Spin Wheel</h3>
-              <p>Win up to $1,000</p>
+              <h3>Daily Bonus</h3>
+              <p>Premium rewards</p>
             </div>
           </button>
           <button 
             onClick={() => setShowScratch(true)}
             className="bonus-card"
           >
-            <div className="bonus-icon bg-gradient-to-br from-amber-500 to-orange-600">
+            <div className="bonus-icon bg-gradient-to-br from-yellow-600 to-yellow-700">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div className="bonus-content">
-              <h3>Scratch Card</h3>
-              <p>Instant prizes</p>
+              <h3>VIP Scratch</h3>
+              <p>Exclusive prizes</p>
             </div>
           </button>
         </div>
@@ -196,13 +196,13 @@ const Home = ({ user, navigate }) => {
       {/* Filter Pills */}
       <div className="filter-container">
         <span className="filter-pill hot active">
-          <Flame className="w-3 h-3" /> High Wins
+          <span className="w-2 h-2 bg-[var(--gold)] rounded-full"></span> Premium
         </span>
         <span className="filter-pill new">
-          <span className="w-2 h-2 bg-blue-400 rounded-full"></span> New Games
+          <span className="w-2 h-2 bg-emerald-400 rounded-full"></span> New Arrivals
         </span>
         <span className="filter-pill free">
-          <span className="text-green-400 font-bold">$</span> Buy Free
+          <span className="text-[var(--gold)] font-bold">💎</span> VIP Only
         </span>
         <span className="filter-pill favorites">
           <Star className="w-3 h-3" /> Favorites
