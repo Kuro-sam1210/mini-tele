@@ -3,10 +3,18 @@ import { ArrowDownLeft, ArrowUpRight, CreditCard, Bitcoin, Building2, ChevronRig
 
 const Wallet = ({ user, updateBalance, navigate }) => {
   const tg = window.Telegram?.WebApp;
-  const [view, setView] = useState('main'); // main, deposit, withdraw
+  const [view, setView] = useState('main');
   const [selectedAmount, setSelectedAmount] = useState(null);
 
   const quickAmounts = [100, 500, 1000, 2000, 5000];
+
+  // Set dark header in Telegram
+  useEffect(() => {
+    if (tg) {
+      tg.setHeaderColor('#09090b');
+      tg.setBackgroundColor('#09090b');
+    }
+  }, [tg]);
 
   const transactions = [
     { type: 'deposit', amount: 500, date: 'Today, 2:30 PM' },
@@ -21,6 +29,8 @@ const Wallet = ({ user, updateBalance, navigate }) => {
 
     if (view === 'deposit' && selectedAmount) {
       tg.MainButton.setText(`Deposit $${selectedAmount}`);
+      tg.MainButton.color = '#f59e0b';
+      tg.MainButton.textColor = '#000000';
       tg.MainButton.show();
       tg.MainButton.onClick(() => {
         tg.HapticFeedback?.notificationOccurred('success');
@@ -30,6 +40,8 @@ const Wallet = ({ user, updateBalance, navigate }) => {
       });
     } else if (view === 'withdraw' && selectedAmount) {
       tg.MainButton.setText(`Withdraw $${selectedAmount}`);
+      tg.MainButton.color = '#ef4444';
+      tg.MainButton.textColor = '#ffffff';
       tg.MainButton.show();
       tg.MainButton.onClick(() => {
         tg.HapticFeedback?.notificationOccurred('success');
@@ -50,13 +62,13 @@ const Wallet = ({ user, updateBalance, navigate }) => {
     return (
       <div className="page">
         <div className="px-4 pt-4 pb-6">
-          <h1 className="text-xl font-bold mb-1">Deposit</h1>
-          <p className="text-sm text-[var(--tg-theme-hint-color)]">Add funds to your account</p>
+          <h1 className="text-xl font-bold mb-1 text-white">Deposit</h1>
+          <p className="text-sm text-[var(--text-muted)]">Add funds to your account</p>
         </div>
 
         <div className="px-4 pb-6">
           <div className="card p-4">
-            <h3 className="font-semibold mb-4">Select Amount</h3>
+            <h3 className="font-semibold mb-4 text-white">Select Amount</h3>
             <div className="grid grid-cols-3 gap-3 mb-4">
               {quickAmounts.map((amount) => (
                 <button
@@ -68,7 +80,7 @@ const Wallet = ({ user, updateBalance, navigate }) => {
                   className={`py-4 rounded-xl font-semibold transition-all ${
                     selectedAmount === amount
                       ? 'bg-amber-500 text-black'
-                      : 'bg-[var(--tg-theme-secondary-bg-color)]'
+                      : 'bg-[var(--bg-elevated)] text-white'
                   }`}
                 >
                   ${amount}
@@ -86,7 +98,7 @@ const Wallet = ({ user, updateBalance, navigate }) => {
         </div>
 
         <div className="px-4 pb-6">
-          <h3 className="font-semibold mb-3">Payment Method</h3>
+          <h3 className="font-semibold mb-3 text-white">Payment Method</h3>
           <div className="space-y-3">
             {[
               { icon: CreditCard, name: 'Card', color: 'text-blue-500' },
@@ -95,8 +107,8 @@ const Wallet = ({ user, updateBalance, navigate }) => {
             ].map((method, i) => (
               <button key={i} className="card w-full p-4 flex items-center gap-4">
                 <method.icon className={`w-6 h-6 ${method.color}`} />
-                <span className="font-medium">{method.name}</span>
-                <ChevronRight className="w-5 h-5 text-[var(--tg-theme-hint-color)] ml-auto" />
+                <span className="font-medium text-white">{method.name}</span>
+                <ChevronRight className="w-5 h-5 text-[var(--text-muted)] ml-auto" />
               </button>
             ))}
           </div>
@@ -125,15 +137,15 @@ const Wallet = ({ user, updateBalance, navigate }) => {
     return (
       <div className="page">
         <div className="px-4 pt-4 pb-6">
-          <h1 className="text-xl font-bold mb-1">Withdraw</h1>
-          <p className="text-sm text-[var(--tg-theme-hint-color)]">
+          <h1 className="text-xl font-bold mb-1 text-white">Withdraw</h1>
+          <p className="text-sm text-[var(--text-muted)]">
             Available: ${user?.balance?.toFixed(2) || '0.00'}
           </p>
         </div>
 
         <div className="px-4 pb-6">
           <div className="card p-4">
-            <h3 className="font-semibold mb-4">Select Amount</h3>
+            <h3 className="font-semibold mb-4 text-white">Select Amount</h3>
             <div className="grid grid-cols-3 gap-3 mb-4">
               {[50, 100, 250, 500, 1000].map((amount) => (
                 <button
@@ -147,8 +159,8 @@ const Wallet = ({ user, updateBalance, navigate }) => {
                     selectedAmount === amount
                       ? 'bg-amber-500 text-black'
                       : amount > (user?.balance || 0)
-                      ? 'bg-[var(--tg-theme-secondary-bg-color)] opacity-50'
-                      : 'bg-[var(--tg-theme-secondary-bg-color)]'
+                      ? 'bg-[var(--bg-elevated)] opacity-50 text-white'
+                      : 'bg-[var(--bg-elevated)] text-white'
                   }`}
                 >
                   ${amount}
@@ -163,7 +175,7 @@ const Wallet = ({ user, updateBalance, navigate }) => {
               max={user?.balance || 0}
               onChange={(e) => setSelectedAmount(Math.min(Number(e.target.value) || 0, user?.balance || 0))}
             />
-            <p className="text-xs text-[var(--tg-theme-hint-color)] mt-2">
+            <p className="text-xs text-[var(--text-muted)] mt-2">
               Min: $50 • Max: $10,000/day
             </p>
           </div>
@@ -178,7 +190,8 @@ const Wallet = ({ user, updateBalance, navigate }) => {
                 setView('main');
                 setSelectedAmount(null);
               }}
-              className="btn-primary w-full py-4 bg-red-500"
+              className="btn-primary w-full py-4"
+              style={{ background: '#ef4444' }}
             >
               Withdraw ${selectedAmount}
             </button>
@@ -193,8 +206,8 @@ const Wallet = ({ user, updateBalance, navigate }) => {
       {/* Balance */}
       <div className="px-4 pt-4 pb-6">
         <div className="card p-6 text-center bg-gradient-to-br from-emerald-500/20 to-transparent">
-          <p className="text-sm text-[var(--tg-theme-hint-color)] mb-1">Total Balance</p>
-          <p className="text-4xl font-bold mb-6">${user?.balance?.toFixed(2) || '0.00'}</p>
+          <p className="text-sm text-[var(--text-muted)] mb-1">Total Balance</p>
+          <p className="text-4xl font-bold mb-6 text-white">${user?.balance?.toFixed(2) || '0.00'}</p>
           
           <div className="flex gap-3">
             <button 
@@ -223,7 +236,7 @@ const Wallet = ({ user, updateBalance, navigate }) => {
 
       {/* Transactions */}
       <div className="px-4 pb-8">
-        <h2 className="text-sm font-semibold text-[var(--tg-theme-hint-color)] mb-3 uppercase tracking-wider">
+        <h2 className="text-sm font-semibold text-[var(--text-muted)] mb-3 uppercase tracking-wider">
           Recent Transactions
         </h2>
         <div className="card divide-y divide-white/5">
@@ -237,8 +250,8 @@ const Wallet = ({ user, updateBalance, navigate }) => {
                  tx.type === 'win' ? '🎉' : <ArrowUpRight className="w-5 h-5 text-red-500" />}
               </div>
               <div className="flex-1">
-                <p className="font-medium capitalize">{tx.type}</p>
-                <p className="text-xs text-[var(--tg-theme-hint-color)]">{tx.date}</p>
+                <p className="font-medium capitalize text-white">{tx.type}</p>
+                <p className="text-xs text-[var(--text-muted)]">{tx.date}</p>
               </div>
               <p className={`font-semibold ${tx.amount > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                 {tx.amount > 0 ? '+' : ''}${Math.abs(tx.amount)}

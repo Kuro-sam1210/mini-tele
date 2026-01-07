@@ -19,6 +19,10 @@ function App() {
       tg.ready();
       tg.expand();
       
+      // Force dark theme
+      tg.setHeaderColor('#09090b');
+      tg.setBackgroundColor('#09090b');
+      
       // Get user from Telegram
       if (tg.initDataUnsafe?.user) {
         const tgUser = tg.initDataUnsafe.user;

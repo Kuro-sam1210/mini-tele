@@ -4,10 +4,20 @@ import { Sparkles, Play, Shield, Zap, Star } from 'lucide-react';
 const Landing = ({ navigate }) => {
   const tg = window.Telegram?.WebApp;
 
+  // Set dark header in Telegram
+  useEffect(() => {
+    if (tg) {
+      tg.setHeaderColor('#09090b');
+      tg.setBackgroundColor('#09090b');
+    }
+  }, [tg]);
+
   // Use Telegram MainButton
   useEffect(() => {
     if (tg?.MainButton) {
       tg.MainButton.setText('🎮 Start Playing');
+      tg.MainButton.color = '#f59e0b';
+      tg.MainButton.textColor = '#000000';
       tg.MainButton.show();
       tg.MainButton.onClick(() => {
         tg.HapticFeedback?.impactOccurred('medium');
@@ -35,11 +45,11 @@ const Landing = ({ navigate }) => {
           <Sparkles className="w-10 h-10 text-black" />
         </div>
         
-        <h1 className="text-3xl font-bold text-center mb-2">
+        <h1 className="text-3xl font-bold text-center mb-2 text-white">
           Royale Gaming
         </h1>
         
-        <p className="text-[var(--tg-theme-hint-color)] text-center max-w-xs">
+        <p className="text-[var(--text-muted)] text-center max-w-xs">
           Premium slots and casino games. Play, win, and withdraw instantly.
         </p>
       </div>
@@ -55,8 +65,8 @@ const Landing = ({ navigate }) => {
               <feat.icon className="w-6 h-6 text-amber-500" />
             </div>
             <div>
-              <h3 className="font-semibold">{feat.title}</h3>
-              <p className="text-sm text-[var(--tg-theme-hint-color)]">{feat.desc}</p>
+              <h3 className="font-semibold text-white">{feat.title}</h3>
+              <p className="text-sm text-[var(--text-muted)]">{feat.desc}</p>
             </div>
           </div>
         ))}

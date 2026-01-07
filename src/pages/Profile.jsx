@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Globe, Bell, Shield, MessageCircle, ChevronRight, Crown, Trophy, Target, X, Check } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -6,6 +6,14 @@ const Profile = ({ user, navigate }) => {
   const tg = window.Telegram?.WebApp;
   const { t, changeLanguage, currentLanguage, languages } = useLanguage();
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+
+  // Set dark header in Telegram
+  useEffect(() => {
+    if (tg) {
+      tg.setHeaderColor('#09090b');
+      tg.setBackgroundColor('#09090b');
+    }
+  }, [tg]);
 
   const stats = [
     { icon: Target, label: 'Bets', value: '1,247' },
@@ -34,22 +42,22 @@ const Profile = ({ user, navigate }) => {
             <img 
               src={user?.avatar} 
               alt="Profile"
-              className="w-16 h-16 rounded-2xl bg-[var(--tg-theme-secondary-bg-color)]"
+              className="w-16 h-16 rounded-2xl bg-[var(--bg-elevated)]"
             />
             <div>
-              <h2 className="text-xl font-bold">{user?.name || 'Player'}</h2>
-              <p className="text-sm text-[var(--tg-theme-hint-color)]">@{user?.username}</p>
+              <h2 className="text-xl font-bold text-white">{user?.name || 'Player'}</h2>
+              <p className="text-sm text-[var(--text-muted)]">@{user?.username}</p>
             </div>
           </div>
 
           {/* VIP Progress */}
-          <div className="bg-[var(--tg-theme-secondary-bg-color)] rounded-xl p-4">
+          <div className="bg-[var(--bg-elevated)] rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Crown className="w-5 h-5 text-amber-500" />
-                <span className="font-semibold">VIP Level 3</span>
+                <span className="font-semibold text-white">VIP Level 3</span>
               </div>
-              <span className="text-xs text-[var(--tg-theme-hint-color)]">65%</span>
+              <span className="text-xs text-[var(--text-muted)]">65%</span>
             </div>
             <div className="h-2 bg-black/20 rounded-full overflow-hidden">
               <div className="h-full w-[65%] bg-amber-500 rounded-full" />
@@ -64,8 +72,8 @@ const Profile = ({ user, navigate }) => {
           {stats.map((stat, i) => (
             <div key={i} className="card p-4 text-center">
               <stat.icon className="w-6 h-6 text-amber-500 mx-auto mb-2" />
-              <p className="font-bold">{stat.value}</p>
-              <p className="text-xs text-[var(--tg-theme-hint-color)]">{stat.label}</p>
+              <p className="font-bold text-white">{stat.value}</p>
+              <p className="text-xs text-[var(--text-muted)]">{stat.label}</p>
             </div>
           ))}
         </div>
@@ -83,14 +91,14 @@ const Profile = ({ user, navigate }) => {
               }}
               className="w-full p-4 flex items-center gap-4"
             >
-              <div className="w-10 h-10 rounded-xl bg-[var(--tg-theme-secondary-bg-color)] flex items-center justify-center">
-                <item.icon className="w-5 h-5 text-[var(--tg-theme-hint-color)]" />
+              <div className="w-10 h-10 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center">
+                <item.icon className="w-5 h-5 text-[var(--text-muted)]" />
               </div>
-              <span className="flex-1 text-left font-medium">{item.label}</span>
+              <span className="flex-1 text-left font-medium text-white">{item.label}</span>
               {item.value && (
-                <span className="text-sm text-[var(--tg-theme-hint-color)]">{item.value}</span>
+                <span className="text-sm text-[var(--text-muted)]">{item.value}</span>
               )}
-              <ChevronRight className="w-5 h-5 text-[var(--tg-theme-hint-color)]" />
+              <ChevronRight className="w-5 h-5 text-[var(--text-muted)]" />
             </button>
           ))}
         </div>
@@ -101,12 +109,12 @@ const Profile = ({ user, navigate }) => {
         <div className="modal-overlay" onClick={() => setShowLanguageModal(false)}>
           <div className="modal max-h-[70vh]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold">{t('language')}</h3>
+              <h3 className="font-semibold text-white">{t('language')}</h3>
               <button 
                 onClick={() => setShowLanguageModal(false)}
                 className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4 text-white" />
               </button>
             </div>
             <div className="space-y-1 overflow-y-auto">
@@ -125,7 +133,7 @@ const Profile = ({ user, navigate }) => {
                   }`}
                 >
                   <span className="text-2xl">{lang.flag}</span>
-                  <span className="flex-1 text-left">{lang.name}</span>
+                  <span className="flex-1 text-left text-white">{lang.name}</span>
                   {currentLanguage === lang.code && (
                     <Check className="w-5 h-5 text-amber-500" />
                   )}

@@ -15,6 +15,14 @@ const Game = ({ user, gameData, updateBalance, navigate }) => {
 
   const gameName = gameData?.game || 'Fortune Tiger';
 
+  // Set dark header in Telegram
+  useEffect(() => {
+    if (tg) {
+      tg.setHeaderColor('#09090b');
+      tg.setBackgroundColor('#09090b');
+    }
+  }, [tg]);
+
   const handleSpin = () => {
     if (user?.balance >= bet) {
       updateBalance(-bet);
@@ -60,19 +68,19 @@ const Game = ({ user, gameData, updateBalance, navigate }) => {
 
       {/* Game Header */}
       <div className="px-4 pt-4 pb-4">
-        <h1 className="text-xl font-bold">{gameName}</h1>
-        <p className="text-sm text-[var(--tg-theme-hint-color)]">PG Soft</p>
+        <h1 className="text-xl font-bold text-white">{gameName}</h1>
+        <p className="text-sm text-[var(--text-muted)]">PG Soft</p>
       </div>
 
       {/* Game Type Switcher */}
       <div className="px-4 pb-4">
-        <div className="flex gap-2 p-1 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl">
+        <div className="flex gap-2 p-1 bg-[var(--bg-secondary)] rounded-xl">
           <button
             onClick={() => setGameType('slots')}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
               gameType === 'slots' 
                 ? 'bg-amber-500 text-black' 
-                : 'text-[var(--tg-theme-hint-color)]'
+                : 'text-[var(--text-muted)]'
             }`}
           >
             🎰 Slots
@@ -82,7 +90,7 @@ const Game = ({ user, gameData, updateBalance, navigate }) => {
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
               gameType === 'cards' 
                 ? 'bg-amber-500 text-black' 
-                : 'text-[var(--tg-theme-hint-color)]'
+                : 'text-[var(--text-muted)]'
             }`}
           >
             🃏 Cards
@@ -110,7 +118,7 @@ const Game = ({ user, gameData, updateBalance, navigate }) => {
               <div className="text-center">
                 <Trophy className="w-16 h-16 text-amber-500 mx-auto mb-4" />
                 <h2 className="text-3xl font-bold text-amber-500 mb-2">YOU WIN!</h2>
-                <p className="text-4xl font-bold">${winAmount.toFixed(2)}</p>
+                <p className="text-4xl font-bold text-white">${winAmount.toFixed(2)}</p>
               </div>
             </div>
           )}
@@ -124,18 +132,18 @@ const Game = ({ user, gameData, updateBalance, navigate }) => {
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 text-center mb-4">
               <div>
-                <p className="text-xs text-[var(--tg-theme-hint-color)]">Bet</p>
-                <p className="font-bold">${bet.toFixed(2)}</p>
+                <p className="text-xs text-[var(--text-muted)]">Bet</p>
+                <p className="font-bold text-white">${bet.toFixed(2)}</p>
               </div>
               <div>
-                <p className="text-xs text-[var(--tg-theme-hint-color)]">Win</p>
-                <p className={`font-bold ${lastWin > 0 ? 'text-amber-500' : ''}`}>
+                <p className="text-xs text-[var(--text-muted)]">Win</p>
+                <p className={`font-bold ${lastWin > 0 ? 'text-amber-500' : 'text-white'}`}>
                   ${lastWin.toFixed(2)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-[var(--tg-theme-hint-color)]">Balance</p>
-                <p className="font-bold">${user?.balance?.toFixed(2) || '0.00'}</p>
+                <p className="text-xs text-[var(--text-muted)]">Balance</p>
+                <p className="font-bold text-white">${user?.balance?.toFixed(2) || '0.00'}</p>
               </div>
             </div>
 
@@ -143,17 +151,17 @@ const Game = ({ user, gameData, updateBalance, navigate }) => {
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => adjustBet(-0.50)}
-                className="w-12 h-12 rounded-xl bg-[var(--tg-theme-secondary-bg-color)] flex items-center justify-center"
+                className="w-12 h-12 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center text-white"
               >
                 <Minus className="w-5 h-5" />
               </button>
               <div className="flex-1 text-center">
-                <p className="text-xs text-[var(--tg-theme-hint-color)]">Bet Amount</p>
-                <p className="text-xl font-bold">${bet.toFixed(2)}</p>
+                <p className="text-xs text-[var(--text-muted)]">Bet Amount</p>
+                <p className="text-xl font-bold text-white">${bet.toFixed(2)}</p>
               </div>
               <button 
                 onClick={() => adjustBet(0.50)}
-                className="w-12 h-12 rounded-xl bg-[var(--tg-theme-secondary-bg-color)] flex items-center justify-center"
+                className="w-12 h-12 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center text-white"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -171,7 +179,7 @@ const Game = ({ user, gameData, updateBalance, navigate }) => {
                   className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
                     bet === amount 
                       ? 'bg-amber-500 text-black' 
-                      : 'bg-[var(--tg-theme-secondary-bg-color)]'
+                      : 'bg-[var(--bg-elevated)] text-white'
                   }`}
                 >
                   ${amount}
@@ -186,22 +194,22 @@ const Game = ({ user, gameData, updateBalance, navigate }) => {
       {gameType === 'slots' && (
         <div className="px-4 pb-8">
           <div className="card p-4">
-            <h3 className="font-semibold mb-3">Paytable</h3>
+            <h3 className="font-semibold mb-3 text-white">Paytable</h3>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between p-2 bg-[var(--tg-theme-secondary-bg-color)] rounded-lg">
-                <span>7️⃣ 7️⃣ 7️⃣</span>
+              <div className="flex justify-between p-2 bg-[var(--bg-elevated)] rounded-lg">
+                <span className="text-white">7️⃣ 7️⃣ 7️⃣</span>
                 <span className="text-amber-500 font-bold">100x</span>
               </div>
-              <div className="flex justify-between p-2 bg-[var(--tg-theme-secondary-bg-color)] rounded-lg">
-                <span>💎 💎 💎</span>
+              <div className="flex justify-between p-2 bg-[var(--bg-elevated)] rounded-lg">
+                <span className="text-white">💎 💎 💎</span>
                 <span className="text-amber-500 font-bold">50x</span>
               </div>
-              <div className="flex justify-between p-2 bg-[var(--tg-theme-secondary-bg-color)] rounded-lg">
-                <span>Any 3 Match</span>
+              <div className="flex justify-between p-2 bg-[var(--bg-elevated)] rounded-lg">
+                <span className="text-white">Any 3 Match</span>
                 <span className="text-amber-500 font-bold">20x</span>
               </div>
-              <div className="flex justify-between p-2 bg-[var(--tg-theme-secondary-bg-color)] rounded-lg">
-                <span>Any 2 Match</span>
+              <div className="flex justify-between p-2 bg-[var(--bg-elevated)] rounded-lg">
+                <span className="text-white">Any 2 Match</span>
                 <span className="text-amber-500 font-bold">3x</span>
               </div>
             </div>

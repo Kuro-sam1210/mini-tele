@@ -10,6 +10,14 @@ const Home = ({ user, navigate }) => {
   const [showScratch, setShowScratch] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
+  // Set dark header in Telegram
+  useEffect(() => {
+    if (tg) {
+      tg.setHeaderColor('#09090b');
+      tg.setBackgroundColor('#09090b');
+    }
+  }, [tg]);
+
   const games = [
     { id: 'fortune-tiger', name: 'Fortune Tiger', provider: 'PG Soft', hot: true },
     { id: 'sweet-bonanza', name: 'Sweet Bonanza', provider: 'Pragmatic', hot: true },
@@ -34,8 +42,8 @@ const Home = ({ user, navigate }) => {
       {/* Balance Card */}
       <div className="px-4 pt-4 pb-6">
         <div className="card p-5 bg-gradient-to-br from-amber-500/20 to-transparent">
-          <p className="text-sm text-[var(--tg-theme-hint-color)] mb-1">Your Balance</p>
-          <p className="text-3xl font-bold mb-4">${user?.balance?.toLocaleString() || '0.00'}</p>
+          <p className="text-sm text-[var(--text-muted)] mb-1">Your Balance</p>
+          <p className="text-3xl font-bold text-white mb-4">${user?.balance?.toLocaleString() || '0.00'}</p>
           
           <div className="flex gap-3">
             <button 
@@ -62,28 +70,28 @@ const Home = ({ user, navigate }) => {
             className="card p-4 flex flex-col items-center gap-2"
           >
             <Wallet className="w-6 h-6 text-amber-500" />
-            <span className="text-xs">Wallet</span>
+            <span className="text-xs text-white">Wallet</span>
           </button>
           <button 
             onClick={() => setShowWheel(true)}
             className="card p-4 flex flex-col items-center gap-2"
           >
             <Gift className="w-6 h-6 text-amber-500" />
-            <span className="text-xs">Spin</span>
+            <span className="text-xs text-white">Spin</span>
           </button>
           <button 
             onClick={() => navigate('profile')}
             className="card p-4 flex flex-col items-center gap-2"
           >
             <User className="w-6 h-6 text-amber-500" />
-            <span className="text-xs">Profile</span>
+            <span className="text-xs text-white">Profile</span>
           </button>
         </div>
       </div>
 
       {/* Daily Bonus */}
       <div className="px-4 pb-6">
-        <h2 className="text-sm font-semibold text-[var(--tg-theme-hint-color)] mb-3 uppercase tracking-wider">
+        <h2 className="text-sm font-semibold text-[var(--text-muted)] mb-3 uppercase tracking-wider">
           Daily Bonus
         </h2>
         <div className="flex gap-3">
@@ -92,23 +100,23 @@ const Home = ({ user, navigate }) => {
             className="card flex-1 p-4"
           >
             <span className="text-2xl mb-2 block">🎡</span>
-            <p className="font-semibold text-sm">Spin Wheel</p>
-            <p className="text-xs text-[var(--tg-theme-hint-color)]">Win up to $1000</p>
+            <p className="font-semibold text-sm text-white">Spin Wheel</p>
+            <p className="text-xs text-[var(--text-muted)]">Win up to $1000</p>
           </button>
           <button 
             onClick={() => setShowScratch(true)}
             className="card flex-1 p-4"
           >
             <span className="text-2xl mb-2 block">🎫</span>
-            <p className="font-semibold text-sm">Scratch Card</p>
-            <p className="text-xs text-[var(--tg-theme-hint-color)]">Instant prizes</p>
+            <p className="font-semibold text-sm text-white">Scratch Card</p>
+            <p className="text-xs text-[var(--text-muted)]">Instant prizes</p>
           </button>
         </div>
       </div>
 
       {/* Games List */}
       <div className="px-4 pb-8">
-        <h2 className="text-sm font-semibold text-[var(--tg-theme-hint-color)] mb-3 uppercase tracking-wider">
+        <h2 className="text-sm font-semibold text-[var(--text-muted)] mb-3 uppercase tracking-wider">
           Popular Games
         </h2>
         <div className="space-y-3">
@@ -126,7 +134,7 @@ const Home = ({ user, navigate }) => {
               </div>
               <div className="flex-1 text-left">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold">{game.name}</h3>
+                  <h3 className="font-semibold text-white">{game.name}</h3>
                   {game.hot && (
                     <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded-full">
                       <Flame className="w-3 h-3" />
@@ -134,9 +142,9 @@ const Home = ({ user, navigate }) => {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-[var(--tg-theme-hint-color)]">{game.provider}</p>
+                <p className="text-sm text-[var(--text-muted)]">{game.provider}</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-[var(--tg-theme-hint-color)]" />
+              <ChevronRight className="w-5 h-5 text-[var(--text-muted)]" />
             </button>
           ))}
         </div>
@@ -150,9 +158,9 @@ const Home = ({ user, navigate }) => {
               onClick={() => setShowWheel(false)}
               className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 text-white" />
             </button>
-            <h2 className="text-xl font-bold text-center mb-6">🎡 Daily Spin</h2>
+            <h2 className="text-xl font-bold text-center mb-6 text-white">🎡 Daily Spin</h2>
             <SpinWheel onComplete={handleWheelComplete} />
           </div>
         </div>
@@ -166,9 +174,9 @@ const Home = ({ user, navigate }) => {
               onClick={() => setShowScratch(false)}
               className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 text-white" />
             </button>
-            <h2 className="text-xl font-bold text-center mb-6">🎫 Scratch & Win</h2>
+            <h2 className="text-xl font-bold text-center mb-6 text-white">🎫 Scratch & Win</h2>
             <ScratchCard onComplete={handleScratchComplete} />
           </div>
         </div>

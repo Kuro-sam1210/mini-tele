@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
-/* Telegram Theme Variables with Fallbacks */
+/* Force dark theme regardless of Telegram's theme */
 :root {
-  --tg-theme-bg-color: #09090b;
-  --tg-theme-secondary-bg-color: #18181b;
-  --tg-theme-text-color: #ffffff;
-  --tg-theme-hint-color: #71717a;
-  --tg-theme-link-color: #f59e0b;
-  --tg-theme-button-color: #f59e0b;
-  --tg-theme-button-text-color: #000000;
+  --bg-primary: #09090b;
+  --bg-secondary: #18181b;
+  --bg-elevated: #27272a;
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --accent: #f59e0b;
+  --accent-dark: #d97706;
+  --border: rgba(255, 255, 255, 0.08);
 }
 
 * {
@@ -16,25 +18,24 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+html, body, #root, .app {
+  min-height: 100vh;
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background: var(--tg-theme-bg-color);
-  color: var(--tg-theme-text-color);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
   overflow-x: hidden;
-  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* App Container */
 .app {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -44,14 +45,15 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  background: var(--bg-primary);
   padding-bottom: env(safe-area-inset-bottom, 20px);
 }
 
 /* Card Component */
 .card {
-  background: var(--tg-theme-secondary-bg-color);
+  background: var(--bg-secondary);
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
 }
 
 /* Button Styles */
@@ -66,8 +68,8 @@ body {
   border-radius: 12px;
   border: none;
   cursor: pointer;
-  background: var(--tg-theme-button-color);
-  color: var(--tg-theme-button-text-color);
+  background: var(--accent);
+  color: #000000;
   transition: all 0.2s ease;
 }
 
@@ -85,10 +87,10 @@ body {
   font-weight: 600;
   font-size: 0.875rem;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
   cursor: pointer;
-  background: var(--tg-theme-secondary-bg-color);
-  color: var(--tg-theme-text-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   transition: all 0.2s ease;
 }
 
@@ -101,21 +103,21 @@ body {
 .input {
   width: 100%;
   padding: 0.875rem 1rem;
-  background: var(--tg-theme-bg-color);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  color: var(--tg-theme-text-color);
+  color: var(--text-primary);
   font-size: 1rem;
   outline: none;
   transition: border-color 0.2s;
 }
 
 .input:focus {
-  border-color: var(--tg-theme-button-color);
+  border-color: var(--accent);
 }
 
 .input::placeholder {
-  color: var(--tg-theme-hint-color);
+  color: var(--text-muted);
 }
 
 /* Modal Styles */
@@ -134,13 +136,24 @@ body {
 
 .modal {
   position: relative;
-  background: var(--tg-theme-secondary-bg-color);
+  background: var(--bg-secondary);
   border-radius: 20px;
   padding: 1.5rem;
   width: 100%;
   max-width: 360px;
   animation: scaleIn 0.2s ease;
 }
+
+/* Text colors */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-accent { color: var(--accent); }
+
+/* Background colors */
+.bg-primary { background: var(--bg-primary); }
+.bg-secondary { background: var(--bg-secondary); }
+.bg-elevated { background: var(--bg-elevated); }
 
 /* Animations */
 @keyframes fadeIn {
@@ -178,7 +191,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-elevated);
   border-radius: 2px;
 }
 
