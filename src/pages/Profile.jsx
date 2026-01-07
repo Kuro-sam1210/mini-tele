@@ -9,8 +9,8 @@ const Profile = ({ user, navigate }) => {
 
   useEffect(() => {
     if (tg) {
-      tg.setHeaderColor('#0f1923');
-      tg.setBackgroundColor('#0f1923');
+      tg.setHeaderColor('#0a0e1a');
+      tg.setBackgroundColor('#0a0e1a');
     }
   }, [tg]);
 
