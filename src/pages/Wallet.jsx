@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, History, Gift, CreditCard, Bitcoin, Building2 } from 'lucide-react';
+import Layout from '../components/Layout';
 
 const Wallet = ({ user, updateBalance, navigate }) => {
   const tg = window.Telegram?.WebApp;
@@ -165,7 +166,8 @@ const Wallet = ({ user, updateBalance, navigate }) => {
   }
 
   return (
-    <div className="page">
+    <Layout title="Wallet" user={user} navigate={navigate} currentScreen="wallet">
+      <div className="page p-4 space-y-6">
       {/* Header */}
       <div className="header-bar">
         <button 
@@ -181,79 +183,96 @@ const Wallet = ({ user, updateBalance, navigate }) => {
         </div>
       </div>
 
-      {/* Balance Card */}
+      {/* Balance Card - Premium Casino Style */}
       <div className="p-4">
         <div className="wallet-card">
-          <p className="wallet-balance-label">USDT Balance:</p>
+          <div className="casino-ornament mb-6"></div>
+          <p className="wallet-balance-label">USDT Balance</p>
           <p className="wallet-balance">{user?.balance?.toLocaleString() || '2,368.50'}</p>
           
-          <div className="flex gap-3 mt-6">
+          <div className="flex gap-4 mt-8">
             <button 
               onClick={() => {
                 tg?.HapticFeedback?.impactOccurred('light');
                 setView('deposit');
               }}
-              className="btn-primary flex-1"
+              className="btn btn-success flex-1 btn-lg font-bold relative overflow-hidden group"
             >
-              Deposit
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                <span>💰</span>
+                Deposit
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             </button>
             <button 
               onClick={() => {
                 tg?.HapticFeedback?.impactOccurred('light');
                 setView('withdraw');
               }}
-              className="btn-secondary flex-1"
+              className="btn btn-secondary flex-1 btn-lg font-bold border-2 border-orange-500/30 hover:border-orange-500/60 hover:bg-orange-500/10"
             >
-              Withdraw
+              <span className="flex items-center justify-center gap-2">
+                <span>💸</span>
+                Withdraw
+              </span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Menu Items */}
+      {/* Menu Items - Premium Casino Style */}
       <div className="px-4">
-        <button className="menu-item w-full rounded-t-2xl">
-          <div className="menu-icon">
-            <History className="w-5 h-5 text-[var(--text-secondary)]" />
+        <button className="menu-item w-full rounded-t-2xl group">
+          <div className="menu-icon group-hover:scale-110 transition-transform duration-300">
+            <History className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-emerald-400 transition-colors duration-300" />
           </div>
-          <span className="flex-1 text-left font-semibold text-white">Transaction History</span>
-          <ChevronRight className="w-5 h-5 text-[var(--text-muted)]" />
+          <span className="flex-1 text-left font-semibold text-white group-hover:text-emerald-400 transition-colors duration-300">Transaction History</span>
+          <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:text-emerald-400 group-hover:translate-x-1 transition-all duration-300" />
         </button>
-        <button className="menu-item w-full rounded-b-2xl">
-          <div className="menu-icon">
-            <Gift className="w-5 h-5 text-[var(--gold)]" />
+        <button className="menu-item w-full rounded-b-2xl group">
+          <div className="menu-icon group-hover:scale-110 transition-transform duration-300">
+            <Gift className="w-5 h-5 text-[var(--gold)] group-hover:scale-110 transition-transform duration-300" />
           </div>
-          <span className="flex-1 text-left font-semibold text-white">My Bonuses</span>
-          <ChevronRight className="w-5 h-5 text-[var(--text-muted)]" />
+          <span className="flex-1 text-left font-semibold text-white group-hover:text-gold transition-colors duration-300">My Bonuses</span>
+          <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:text-gold group-hover:translate-x-1 transition-all duration-300" />
         </button>
       </div>
 
-      {/* Recent Transactions */}
+      {/* Recent Transactions - Premium Casino Style */}
       <div className="p-4">
-        <p className="text-sm text-[var(--text-muted)] mb-3">Recent Activity</p>
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm text-[var(--text-muted)] uppercase tracking-wider font-semibold">Recent Activity</p>
+          <button className="text-xs text-gold hover:text-gold-light transition-colors font-medium">
+            View All →
+          </button>
+        </div>
         <div className="card">
-          {transactions.map((tx, i) => (
-            <div key={i} className="game-list-item">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                tx.type === 'deposit' ? 'bg-green-500/20' :
-                tx.type === 'win' ? 'bg-amber-500/20' : 'bg-red-500/20'
-              }`}>
-                <span className="text-lg">
-                  {tx.type === 'deposit' ? '💵' : tx.type === 'win' ? '🏆' : '💸'}
-                </span>
+          <div className="space-y-3">
+            {transactions.map((tx, i) => (
+              <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-gold/20 transition-all duration-300 group">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center border-2 transition-all duration-300 ${
+                  tx.type === 'deposit' ? 'bg-green-500/20 border-green-500/30 group-hover:border-green-500/60' :
+                  tx.type === 'win' ? 'bg-amber-500/20 border-amber-500/30 group-hover:border-amber-500/60' : 
+                  'bg-red-500/20 border-red-500/30 group-hover:border-red-500/60'
+                }`}>
+                  <span className="text-xl group-hover:scale-110 transition-transform duration-300">
+                    {tx.type === 'deposit' ? '💵' : tx.type === 'win' ? '🏆' : '💸'}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-white text-sm capitalize tracking-tight">{tx.type}</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">{tx.date}</p>
+                </div>
+                <p className={`font-bold text-lg tracking-tight ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {tx.amount > 0 ? '+' : ''}${Math.abs(tx.amount).toLocaleString()}
+                </p>
               </div>
-              <div className="flex-1">
-                <p className="font-semibold text-white text-sm capitalize">{tx.type}</p>
-                <p className="text-xs text-[var(--text-muted)]">{tx.date}</p>
-              </div>
-              <p className={`font-bold ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {tx.amount > 0 ? '+' : ''}${Math.abs(tx.amount)}
-              </p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+      </div>
+    </Layout>
   );
 };
 

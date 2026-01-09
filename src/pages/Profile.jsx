@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Globe, Bell, Shield, MessageCircle, ChevronRight, Crown, Trophy, Target, X, Check } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import Layout from '../components/Layout';
 
 const Profile = ({ user, navigate }) => {
   const tg = window.Telegram?.WebApp;
@@ -33,7 +34,8 @@ const Profile = ({ user, navigate }) => {
   ];
 
   return (
-    <div className="page">
+    <Layout title="Profile" user={user} navigate={navigate} currentScreen="profile">
+      <div className="page p-4 space-y-6">
       {/* Header */}
       <div className="header-bar">
         <div className="w-5" />
@@ -155,7 +157,8 @@ const Profile = ({ user, navigate }) => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </Layout>
   );
 };
 

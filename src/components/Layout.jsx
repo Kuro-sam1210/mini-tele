@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, Menu, X, Home, Gamepad2, Wallet, User, Settings } from 'lucide-react';
+import { ChevronLeft, Menu, X, Home, Gamepad2, Wallet, User } from 'lucide-react';
 
-const Layout = ({ children, title, showBack = false, onBack, user }) => {
+const Layout = ({ children, title, showBack = false, onBack, user, navigate, currentScreen = 'home' }) => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const tg = window.Telegram?.WebApp;
 
@@ -13,16 +13,17 @@ const Layout = ({ children, title, showBack = false, onBack, user }) => {
   }, [tg]);
 
   const navigation = [
-    { id: 'home', label: 'Home', icon: Home, path: '/' },
-    { id: 'games', label: 'Games', icon: Gamepad2, path: '/game' },
-    { id: 'wallet', label: 'Wallet', icon: Wallet, path: '/wallet' },
-    { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
+    { id: 'home', label: 'Home', icon: Home, screen: 'home' },
+    { id: 'games', label: 'Games', icon: Gamepad2, screen: 'game' },
+    { id: 'wallet', label: 'Wallet', icon: Wallet, screen: 'wallet' },
+    { id: 'profile', label: 'Profile', icon: User, screen: 'profile' },
   ];
 
-  const handleNavigation = (path) => {
+  const handleNavigation = (screen) => {
     setShowMobileMenu(false);
-    // Handle navigation logic here
-    window.location.hash = path;
+    if (navigate) {
+      navigate(screen);
+    }
   };
 
   return (
@@ -40,16 +41,17 @@ const Layout = ({ children, title, showBack = false, onBack, user }) => {
           )}
           
           <div className="app-title">
-            <div className="telegram-icon overflow-hidden">
+            <div className="telegram-icon overflow-hidden relative">
               <img 
                 src="/casinologo.jpg" 
                 alt="Golden Age Cash"
                 className="w-full h-full object-cover rounded-full"
               />
+              <div className="absolute inset-0 rounded-full border-2 border-emerald-500/30 pointer-events-none"></div>
             </div>
             <div>
-              <div className="font-semibold text-gradient-gold">Golden Age Cash</div>
-              {title && <div className="text-xs text-gray-400">{title}</div>}
+              <div className="font-bold text-gradient-gold tracking-tight text-base">Golden Age Cash</div>
+              {title && <div className="text-xs text-gray-400 mt-0.5 font-medium">{title}</div>}
             </div>
           </div>
         </div>
@@ -89,7 +91,7 @@ const Layout = ({ children, title, showBack = false, onBack, user }) => {
               {navigation.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => handleNavigation(item.path)}
+                  onClick={() => handleNavigation(item.screen)}
                   className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors text-left"
                 >
                   <item.icon size={20} className="text-gray-400" />
@@ -106,19 +108,30 @@ const Layout = ({ children, title, showBack = false, onBack, user }) => {
         {children}
       </main>
 
-      {/* Bottom Navigation for Mobile */}
-      <nav className="md:hidden bg-black/80 backdrop-blur-lg border-t border-white/10">
+      {/* Bottom Navigation for Mobile - Premium Casino Style */}
+      <nav className="md:hidden bottom-nav">
         <div className="flex">
-          {navigation.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => handleNavigation(item.path)}
-              className="flex-1 flex flex-col items-center gap-1 p-3 hover:bg-white/5 transition-colors"
-            >
-              <item.icon size={20} className="text-gray-400" />
-              <span className="text-xs text-gray-400">{item.label}</span>
-            </button>
-          ))}
+          {navigation.map((item) => {
+            const isActive = currentScreen === item.screen;
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleNavigation(item.screen)}
+                className={`bottom-nav-item flex-1 flex flex-col items-center gap-1 py-3 transition-all ${
+                  isActive ? 'active' : ''
+                }`}
+              >
+                <item.icon 
+                  size={22} 
+                  className={isActive ? 'text-gold' : 'text-gray-400'} 
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                <span className={`text-xs font-medium ${isActive ? 'text-gold' : 'text-gray-400'}`}>
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </nav>
     </div>

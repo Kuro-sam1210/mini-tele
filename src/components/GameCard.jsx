@@ -24,8 +24,8 @@ const GameCard = ({
   const getStatusBadge = () => {
     if (game.isHot) {
       return (
-        <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-red-600 to-red-500 rounded-full text-xs font-medium">
-          <Flame size={12} />
+        <div className="absolute top-3 right-3 status-badge-hot">
+          <Flame size={10} />
           <span>HOT</span>
         </div>
       );
@@ -33,8 +33,8 @@ const GameCard = ({
     
     if (game.isNew) {
       return (
-        <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-full text-xs font-medium">
-          <Star size={12} />
+        <div className="absolute top-3 right-3 status-badge-new">
+          <Star size={10} />
           <span>NEW</span>
         </div>
       );
@@ -42,7 +42,7 @@ const GameCard = ({
     
     if (game.isLive) {
       return (
-        <div className="absolute top-2 right-2 live-indicator">
+        <div className="absolute top-3 right-3 live-indicator">
           <div className="live-dot"></div>
           <span>LIVE</span>
         </div>
