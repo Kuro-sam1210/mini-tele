@@ -8,6 +8,9 @@ import Home from './pages/Home';
 import Game from './pages/Game';
 import Wallet from './pages/Wallet';
 import Profile from './pages/Profile';
+import Promotion from './pages/Promotion';
+import Customer from './pages/Customer';
+import Download from './pages/Download';
 import './App.css';
 
 function AppContent() {
@@ -20,8 +23,8 @@ function AppContent() {
   // Use API and Auth contexts
   const { 
     isConnected, 
-    deposit,
-    withdraw
+    createDeposit,
+    createWithdrawal
   } = useApi();
   
   const {
@@ -45,7 +48,7 @@ function AppContent() {
         tg.ready();
         tg.expand();
         
-        // Set Golden Age Cash theme colors (only if supported)
+        // Set Golden Age Casino theme colors (only if supported)
         if (tg.setHeaderColor) {
           tg.setHeaderColor('#000000');
         }
@@ -60,7 +63,7 @@ function AppContent() {
           // Try to login with demo credentials
           const loginResult = await loginWithDemo();
           if (loginResult.success) {
-            toast.success(`Welcome to Golden Age Club, ${tgUser.first_name}!`);
+            toast.success(`Welcome to Golden Age Casino, ${tgUser.first_name}!`);
           }
           
           // Auto-navigate to home if user is logged in via Telegram
@@ -86,7 +89,8 @@ function AppContent() {
       if (tg?.HapticFeedback?.impactOccurred) {
         tg.HapticFeedback.impactOccurred('light');
       }
-      if (screen === 'game' || screen === 'wallet' || screen === 'profile') {
+      if (screen === 'game' || screen === 'wallet' || screen === 'profile' || 
+          screen === 'promotion' || screen === 'customer' || screen === 'download') {
         navigate('home');
       } else if (screen === 'home') {
         navigate('landing');
@@ -122,9 +126,9 @@ function AppContent() {
       // Try to update balance via API
       try {
         if (amount > 0) {
-          await deposit(amount);
+          await createDeposit(amount);
         } else if (amount < 0) {
-          await withdraw(Math.abs(amount));
+          await createWithdrawal(Math.abs(amount), 'dummy-address');
         }
       } catch (error) {
         console.warn('Balance update via API failed, using local update');
@@ -146,7 +150,7 @@ function AppContent() {
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-gold flex items-center justify-center glow-gold overflow-hidden">
             <img 
               src="/casinologo.jpg" 
-              alt="Golden Age Cash"
+              alt="Golden Age Casino"
               className="w-full h-full object-cover rounded-full"
             />
           </div>
@@ -155,7 +159,7 @@ function AppContent() {
             <div className="loading-dot"></div>
             <div className="loading-dot"></div>
           </div>
-          <p className="text-gray-400">Initializing Golden Age Club...</p>
+          <p className="text-gray-400">Initializing Golden Age Casino...</p>
         </div>
       </div>
     );
@@ -184,6 +188,15 @@ function AppContent() {
       )}
       {screen === 'profile' && (
         <Profile user={user} navigate={navigate} />
+      )}
+      {screen === 'promotion' && (
+        <Promotion navigate={navigate} />
+      )}
+      {screen === 'customer' && (
+        <Customer navigate={navigate} />
+      )}
+      {screen === 'download' && (
+        <Download navigate={navigate} />
       )}
       
       {/* Toast Notifications */}

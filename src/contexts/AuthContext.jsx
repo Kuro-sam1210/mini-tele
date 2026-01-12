@@ -5,6 +5,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import authApi from '../api/auth';
+import walletApi from '../api/wallet';
 
 const AuthContext = createContext();
 
@@ -21,11 +22,56 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [balanceLoading, setBalanceLoading] = useState(false);
 
   // Check for existing authentication on mount
   useEffect(() => {
     checkAuthStatus();
   }, []);
+
+  // Fetch real-time balance from API
+  const fetchBalance = async () => {
+    // Check if we have a token instead of relying on isAuthenticated state
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      console.warn('⚠️ Cannot fetch balance: no access token');
+      return;
+    }
+    
+    setBalanceLoading(true);
+    try {
+      const balanceData = await walletApi.getBalance();
+      console.log('📡 Balance API response:', balanceData);
+      
+      // Handle different response structures
+      const balance = balanceData?.balance ?? balanceData?.data?.balance ?? balanceData;
+      
+      if (balance !== undefined && balance !== null) {
+        const balanceValue = typeof balance === 'number' ? balance : parseFloat(balance);
+        if (!isNaN(balanceValue)) {
+          setUser(prev => ({ ...prev, balance: balanceValue }));
+          console.log('✅ Balance updated from API:', balanceValue);
+        } else {
+          console.warn('⚠️ Invalid balance value:', balance);
+        }
+      } else {
+        console.warn('⚠️ Balance not found in API response');
+      }
+    } catch (err) {
+      console.warn('⚠️ Failed to fetch balance from API:', err.message);
+      // Set balance to 0 if fetch fails
+      setUser(prev => ({ ...prev, balance: 0 }));
+    } finally {
+      setBalanceLoading(false);
+    }
+  };
+
+  // Auto-refresh balance when user becomes authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchBalance();
+    }
+  }, [isAuthenticated]);
 
   const checkAuthStatus = async () => {
     setIsLoading(true);
@@ -38,9 +84,14 @@ export const AuthProvider = ({ children }) => {
         const currentUser = await authApi.getCurrentUser();
         
         if (currentUser) {
-          setUser(currentUser);
+          // Remove balance from user object - we'll fetch it from wallet API
+          const { balance, ...userWithoutBalance } = currentUser;
+          setUser(userWithoutBalance);
           setIsAuthenticated(true);
           console.log('✅ User authenticated from existing token');
+          
+          // Fetch real-time balance from wallet API
+          await fetchBalance();
         } else {
           // Token is invalid, remove it
           localStorage.removeItem('access_token');
@@ -73,14 +124,20 @@ export const AuthProvider = ({ children }) => {
       const result = await authApi.login(tg.initData);
       
       if (result && result.user && result.access_token) {
-        setUser(result.user);
+        // Remove balance from user object - we'll fetch it from wallet API
+        const { balance, ...userWithoutBalance } = result.user;
+        setUser(userWithoutBalance);
         setIsAuthenticated(true);
         
         // Store JWT token in localStorage
         localStorage.setItem('access_token', result.access_token);
         
         console.log('✅ User logged in with Telegram successfully');
-        return { success: true, user: result.user };
+        
+        // Fetch real-time balance from wallet API
+        await fetchBalance();
+        
+        return { success: true, user: userWithoutBalance };
       } else {
         const errorMsg = result?.message || 'Telegram login failed';
         setError(errorMsg);
@@ -104,14 +161,20 @@ export const AuthProvider = ({ children }) => {
       const result = await authApi.login(telegramId.toString());
       
       if (result && result.user && result.access_token) {
-        setUser(result.user);
+        // Remove balance from user object - we'll fetch it from wallet API
+        const { balance, ...userWithoutBalance } = result.user;
+        setUser(userWithoutBalance);
         setIsAuthenticated(true);
         
         // Store JWT token in localStorage
         localStorage.setItem('access_token', result.access_token);
         
         console.log('✅ User logged in with test data successfully');
-        return { success: true, user: result.user };
+        
+        // Fetch real-time balance from wallet API
+        await fetchBalance();
+        
+        return { success: true, user: userWithoutBalance };
       } else {
         const errorMsg = result?.message || 'Test login failed';
         setError(errorMsg);
@@ -180,6 +243,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     isLoading,
     error,
+    balanceLoading,
     
     // Methods
     loginWithTelegram,
@@ -189,7 +253,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateUser,
     clearError,
-    checkAuthStatus
+    checkAuthStatus,
+    fetchBalance
   };
 
   return (

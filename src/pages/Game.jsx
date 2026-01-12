@@ -97,8 +97,8 @@ const Game = ({ user, updateBalance, navigate, gameData }) => {
         {/* Mega Win Display - Premium Casino Style */}
         {lastWin && lastWin >= 100 && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
-            <div className="card text-center max-w-sm mx-4 glow-gold border-2 border-gold/50 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-gold/10 via-transparent to-emerald/10 animate-pulse"></div>
+            <div className="card text-center max-w-sm mx-4 glow-gold border-2 border-yellow-400/50 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 via-transparent to-emerald-500/10 animate-pulse"></div>
               <div className="relative z-10">
                 <div className="text-7xl mb-4 animate-bounce">🎉</div>
                 <h2 className="text-3xl font-bold text-gradient-gold mb-3 tracking-tight">MEGA WIN!</h2>
@@ -155,7 +155,7 @@ const Game = ({ user, updateBalance, navigate, gameData }) => {
               </div>
             </div>
             <div className="card text-center relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-br from-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative z-10">
                 <div className="text-3xl mb-2 transform group-hover:scale-110 transition-transform duration-300">🔥</div>
                 <div className="text-xs text-gray-400 uppercase tracking-wider mb-1 font-medium">Win Streak</div>
@@ -170,7 +170,7 @@ const Game = ({ user, updateBalance, navigate, gameData }) => {
         {/* Main Game Area - Premium Casino Style */}
         <div className="px-4">
           <div className="card p-4 sm:p-6 bg-gradient-to-br from-black via-gray-900 to-black border-2 border-amber-500/30 relative overflow-hidden w-full max-w-full box-border">
-            <div className="absolute inset-0 bg-gradient-to-br from-gold/5 via-transparent to-emerald/5 opacity-50"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/5 via-transparent to-emerald-500/5 opacity-50"></div>
             <div className="casino-ornament mb-4"></div>
             <div className="relative z-10 mb-6 text-center">
               <h2 className="text-2xl font-bold text-gradient-gold mb-2 tracking-tight">

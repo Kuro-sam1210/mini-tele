@@ -16,7 +16,7 @@ const Landing = ({ navigate }) => {
       tg.expand?.();
       tg.ready?.();
 
-      tg.MainButton?.setText('👑 Enter Golden Age Cash 👑');
+      tg.MainButton?.setText('👑 Enter Golden Age Casino 👑');
       tg.MainButton?.show();
       tg.MainButton?.onClick(() => navigate('home'));
       setShowFallbackButton(false);
@@ -43,7 +43,7 @@ const Landing = ({ navigate }) => {
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-gold flex items-center justify-center glow-gold overflow-hidden">
             <img 
               src="/casinologo.jpg" 
-              alt="Golden Age Cash"
+              alt="Golden Age Casino"
               className="w-full h-full object-cover rounded-full"
             />
           </div>
@@ -52,7 +52,7 @@ const Landing = ({ navigate }) => {
             <div className="loading-dot"></div>
             <div className="loading-dot"></div>
           </div>
-          <p className="text-gray-400">Loading Golden Age Cash...</p>
+          <p className="text-gray-400">Loading Golden Age Casino...</p>
         </div>
       </div>
     );
@@ -68,16 +68,16 @@ const Landing = ({ navigate }) => {
 
       {/* Logo Area */}
       <div className="text-center mb-12 relative z-10">
-        <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-card border-2 border-gold/30 flex items-center justify-center glow-gold overflow-hidden">
+        <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-card border-2 border-yellow-400/30 flex items-center justify-center glow-gold overflow-hidden">
           <img 
             src="/casinologo.jpg" 
-            alt="Golden Age Cash Logo"
+            alt="Golden Age Casino Logo"
             className="w-full h-full object-cover rounded-full"
           />
         </div>
         
         <h1 className="text-4xl font-bold text-gradient-gold mb-3">
-          Golden Age Cash
+          Golden Age Casino
         </h1>
         <p className="text-lg text-gray-300 mb-2">
           Premium Casino Experience
@@ -152,7 +152,7 @@ const Landing = ({ navigate }) => {
           className="btn btn-primary btn-lg w-full max-w-md mb-8 relative z-10 glow-gold"
         >
           <Crown className="w-6 h-6" />
-          Enter Golden Age Cash
+          Enter Golden Age Casino
           <Sparkles className="w-5 h-5" />
         </button>
       )}

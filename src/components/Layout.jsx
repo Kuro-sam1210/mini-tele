@@ -1,27 +1,32 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, Menu, X, Home, Gamepad2, Wallet, User } from 'lucide-react';
+import { ChevronLeft, X, Home, Gift, Headphones, Download, User, Globe, RefreshCw } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const Layout = ({ children, title, showBack = false, onBack, user, navigate, currentScreen = 'home' }) => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const { currentLanguage, languages, changeLanguage } = useLanguage();
+  const { fetchBalance, balanceLoading } = useAuth();
   const tg = window.Telegram?.WebApp;
 
   useEffect(() => {
     if (tg) {
       // Only set colors if supported
       if (tg.setHeaderColor) {
-        tg.setHeaderColor('#000000');
+        tg.setHeaderColor('#0a0a15');
       }
       if (tg.setBackgroundColor) {
-        tg.setBackgroundColor('#000000');
+        tg.setBackgroundColor('#0a0a15');
       }
     }
   }, [tg]);
 
   const navigation = [
     { id: 'home', label: 'Home', icon: Home, screen: 'home' },
-    { id: 'games', label: 'Games', icon: Gamepad2, screen: 'game' },
-    { id: 'wallet', label: 'Wallet', icon: Wallet, screen: 'wallet' },
-    { id: 'profile', label: 'Profile', icon: User, screen: 'profile' },
+    { id: 'promotion', label: 'Promotion', icon: Gift, screen: 'promotion' },
+    { id: 'customer', label: 'Customer', icon: Headphones, screen: 'customer' },
+    { id: 'download', label: 'Download', icon: Download, screen: 'download' },
+    { id: 'account', label: 'Account', icon: User, screen: 'profile' },
   ];
 
   const handleNavigation = (screen) => {
@@ -31,114 +36,107 @@ const Layout = ({ children, title, showBack = false, onBack, user, navigate, cur
     }
   };
 
+  const handleDeposit = () => {
+    if (navigate) {
+      navigate('wallet');
+    }
+  };
+
+  const handleRefreshBalance = async () => {
+    if (fetchBalance) {
+      await fetchBalance();
+    }
+  };
+
   return (
     <div className="app">
-      {/* Mobile Header */}
-      <header className="header-bar">
-        <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
-          {showBack && (
-            <button
-              onClick={onBack}
-              className="p-2 rounded-lg hover:bg-white/10 transition-colors touch-manipulation flex-shrink-0"
-              style={{ minWidth: '44px', minHeight: '44px' }}
-            >
-              <ChevronLeft size={20} className="text-white" />
-            </button>
-          )}
-          
-          <div className="app-title min-w-0">
-            <div className="telegram-icon overflow-hidden relative flex-shrink-0">
-              <img 
-                src="/casinologo.jpg" 
-                alt="Golden Age Cash"
-                className="w-full h-full object-cover rounded-full"
-              />
-              <div className="absolute inset-0 rounded-full border-2 border-emerald-500/30 pointer-events-none"></div>
-            </div>
-            <div className="min-w-0 flex-1 overflow-hidden">
-              <div className="font-bold text-gradient-gold tracking-tight text-sm sm:text-base truncate">
-                Golden Age Cash
+      {/* Top Header */}
+      <header className="top-header">
+        <div className="top-header-content">
+          {/* Logo */}
+          <div className="header-logo">
+            <span className="logo-text-gold">Golden Age Casino</span>
+          </div>
+
+          {/* Balance & Actions */}
+          <div className="header-actions">
+            {/* Balance Display */}
+            {user && (
+              <div className="balance-display">
+                <div className="balance-icon">₮</div>
+                <span className="balance-amount">
+                  {balanceLoading ? '...' : (user.balance !== undefined ? user.balance.toFixed(2) : '0.00')}
+                </span>
+                <button 
+                  className="balance-refresh-btn"
+                  onClick={handleRefreshBalance}
+                  disabled={balanceLoading}
+                  title="Refresh balance"
+                >
+                  <RefreshCw size={12} className={balanceLoading ? 'animate-spin' : ''} />
+                </button>
               </div>
-              {title && (
-                <div className="text-xs text-gray-400 mt-0.5 font-medium truncate">
-                  {title}
-                </div>
-              )}
-            </div>
+            )}
+            
+            {/* Refresh Icon */}
+            <button className="icon-button" onClick={() => window.location.reload()}>
+              <RefreshCw size={18} />
+            </button>
+
+            {/* Deposit Button */}
+            <button className="deposit-button" onClick={handleDeposit}>
+              Deposit
+            </button>
+
+            {/* Language Selector */}
+            <button 
+              className="icon-button" 
+              onClick={() => {
+                const currentIndex = languages.findIndex(l => l.code === currentLanguage);
+                const nextIndex = (currentIndex + 1) % languages.length;
+                changeLanguage(languages[nextIndex].code);
+              }}
+            >
+              <Globe size={18} />
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-          {user?.balance !== undefined && (
-            <div className="balance-chip">
-              <span className="text-xs flex-shrink-0">💰</span>
-              <span className="truncate">${user.balance.toLocaleString()}</span>
-            </div>
-          )}
-          
+        {/* Back Button (if needed) */}
+        {showBack && (
           <button
-            onClick={() => setShowMobileMenu(true)}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors touch-manipulation flex-shrink-0"
+            onClick={onBack}
+            className="back-button"
             style={{ minWidth: '44px', minHeight: '44px' }}
           >
-            <Menu size={20} className="text-white" />
+            <ChevronLeft size={20} className="text-white" />
           </button>
-        </div>
+        )}
       </header>
 
-      {/* Mobile Menu Overlay */}
-      {showMobileMenu && (
-        <div className="modal-overlay" onClick={() => setShowMobileMenu(false)}>
-          <div className="modal-content w-full max-w-sm" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 className="modal-title">Navigation</h3>
-              <button
-                onClick={() => setShowMobileMenu(false)}
-                className="modal-close"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            
-            <nav className="space-y-2">
-              {navigation.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleNavigation(item.screen)}
-                  className="w-full flex items-center gap-3 p-4 rounded-lg hover:bg-white/5 transition-colors text-left touch-manipulation"
-                  style={{ minHeight: '56px' }}
-                >
-                  <item.icon size={20} className="text-gray-400" />
-                  <span className="text-white font-medium">{item.label}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
-        </div>
-      )}
-
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden w-full max-w-full">
+      <main className="main-content">
         {children}
       </main>
 
-      {/* Bottom Navigation - Mobile Optimized */}
+      {/* Bottom Navigation */}
       <nav className="bottom-nav">
-        <div className="flex">
+        <div className="bottom-nav-container">
           {navigation.map((item) => {
-            const isActive = currentScreen === item.screen;
+            const isActive = currentScreen === item.screen || 
+              (item.screen === 'profile' && currentScreen === 'profile');
             return (
               <button
                 key={item.id}
                 onClick={() => handleNavigation(item.screen)}
-                className={`bottom-nav-item flex-1 ${isActive ? 'active' : ''}`}
+                className={`bottom-nav-item ${isActive ? 'active' : ''}`}
               >
                 <item.icon 
-                  size={20} 
-                  className={isActive ? 'text-gold' : 'text-gray-400'} 
+                  size={22} 
+                  className={isActive ? 'active-icon' : 'inactive-icon'} 
                   strokeWidth={isActive ? 2.5 : 2}
                 />
-                <span className={`text-xs font-medium ${isActive ? 'text-gold' : 'text-gray-400'}`}>
+                <span className={`nav-label ${isActive ? 'active-label' : 'inactive-label'}`}>
                   {item.label}
                 </span>
               </button>

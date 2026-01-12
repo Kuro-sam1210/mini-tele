@@ -1,15 +1,31 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, History, Gift, CreditCard, Bitcoin, Building2 } from 'lucide-react';
+import { ChevronLeft, History, Bitcoin, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import Layout from '../components/Layout';
+import { useAuth } from '../contexts/AuthContext';
+import { useApi } from '../contexts/ApiContext';
 
-const Wallet = ({ user, updateBalance, navigate }) => {
+const Wallet = ({ navigate }) => {
   const tg = window.Telegram?.WebApp;
   const [view, setView] = useState('main');
   const [selectedAmount, setSelectedAmount] = useState(null);
+  const [customAmount, setCustomAmount] = useState('');
+  const [walletAddress, setWalletAddress] = useState('');
   const [isInTelegram, setIsInTelegram] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [balance, setBalance] = useState(0);
+  const [transactions, setTransactions] = useState([]);
 
-  const quickAmounts = [100, 500, 1000, 2000, 5000];
+  // Contexts
+  const { user, isAuthenticated } = useAuth();
+  const { getBalance, getTransactions, createDeposit, createWithdrawal } = useApi();
 
+  const quickAmounts = [10, 25, 50, 100, 250, 500];
+  const depositLimits = { min: 10, max: 100000 };
+  const withdrawalLimits = { min: 10, max: 50000 };
+
+  // Initialize Telegram WebApp
   useEffect(() => {
     // Check if we're in Telegram environment
     const inTelegram = tg && tg.initData && tg.initData.length > 0;
@@ -21,31 +37,141 @@ const Wallet = ({ user, updateBalance, navigate }) => {
     }
   }, [tg]);
 
+  // Load wallet data when authenticated
   useEffect(() => {
-    if (!isInTelegram || !tg?.MainButton) return;
+    if (isAuthenticated) {
+      loadWalletData();
+    }
+  }, [isAuthenticated]);
 
-    if (view === 'deposit' && selectedAmount) {
-      tg.MainButton.setText(`Deposit $${selectedAmount}`);
-      tg.MainButton.color = '#4caf50';
-      tg.MainButton.textColor = '#ffffff';
-      tg.MainButton.show();
-      tg.MainButton.onClick(() => {
-        tg.HapticFeedback?.notificationOccurred('success');
-        updateBalance(selectedAmount);
+  const loadWalletData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load balance
+      const balanceResult = await getBalance();
+      if (balanceResult.success) {
+        setBalance(balanceResult.data.balance || 0);
+      }
+      
+      // Load transactions
+      const transactionsResult = await getTransactions(10);
+      if (transactionsResult.success) {
+        setTransactions(transactionsResult.data.transactions || []);
+      }
+      
+    } catch (err) {
+      setError('Failed to load wallet data');
+      console.error('Wallet data loading error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeposit = async () => {
+    if (!selectedAmount || selectedAmount < depositLimits.min) {
+      setError(`Minimum deposit amount is ${depositLimits.min} USDT`);
+      return;
+    }
+
+    if (selectedAmount > depositLimits.max) {
+      setError(`Maximum deposit amount is ${depositLimits.max.toLocaleString()} USDT`);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const result = await createDeposit(selectedAmount);
+      
+      if (result.success) {
+        setSuccess(`Deposit order created for ${selectedAmount} USDT`);
+        
+        // If payment URL is provided, open it
+        if (result.data.payment_url) {
+          if (tg?.openLink) {
+            tg.openLink(result.data.payment_url);
+          } else {
+            window.open(result.data.payment_url, '_blank');
+          }
+        }
+        
+        // Refresh wallet data
+        await loadWalletData();
         setView('main');
         setSelectedAmount(null);
-      });
-    } else if (view === 'withdraw' && selectedAmount) {
-      tg.MainButton.setText(`Withdraw $${selectedAmount}`);
-      tg.MainButton.color = '#ff6b35';
-      tg.MainButton.textColor = '#ffffff';
-      tg.MainButton.show();
-      tg.MainButton.onClick(() => {
-        tg.HapticFeedback?.notificationOccurred('success');
-        updateBalance(-selectedAmount);
+      } else {
+        setError(result.error || 'Deposit failed');
+      }
+    } catch (err) {
+      setError('Deposit failed: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWithdrawal = async () => {
+    if (!selectedAmount || selectedAmount < withdrawalLimits.min) {
+      setError(`Minimum withdrawal amount is ${withdrawalLimits.min} USDT`);
+      return;
+    }
+
+    if (selectedAmount > withdrawalLimits.max) {
+      setError(`Maximum withdrawal amount is ${withdrawalLimits.max.toLocaleString()} USDT`);
+      return;
+    }
+
+    if (selectedAmount > balance) {
+      setError('Insufficient balance');
+      return;
+    }
+
+    if (!walletAddress.trim()) {
+      setError('Please enter a valid USDT wallet address');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const result = await createWithdrawal(selectedAmount, walletAddress);
+      
+      if (result.success) {
+        setSuccess(`Withdrawal request created for ${selectedAmount} USDT`);
+        
+        // Refresh wallet data
+        await loadWalletData();
         setView('main');
         setSelectedAmount(null);
-      });
+        setWalletAddress('');
+      } else {
+        setError(result.error || 'Withdrawal failed');
+      }
+    } catch (err) {
+      setError('Withdrawal failed: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Telegram Main Button integration
+  useEffect(() => {
+    if (!isInTelegram) return;
+
+    if (view === 'deposit' && selectedAmount && selectedAmount >= depositLimits.min) {
+      tg.MainButton.setText(`Deposit ${selectedAmount} USDT`);
+      tg.MainButton.color = '#10b981';
+      tg.MainButton.textColor = '#ffffff';
+      tg.MainButton.show();
+      tg.MainButton.onClick(handleDeposit);
+    } else if (view === 'withdraw' && selectedAmount && selectedAmount >= withdrawalLimits.min && walletAddress.trim()) {
+      tg.MainButton.setText(`Withdraw ${selectedAmount} USDT`);
+      tg.MainButton.color = '#f59e0b';
+      tg.MainButton.textColor = '#ffffff';
+      tg.MainButton.show();
+      tg.MainButton.onClick(handleWithdrawal);
     } else {
       tg.MainButton.hide();
     }
@@ -53,111 +179,206 @@ const Wallet = ({ user, updateBalance, navigate }) => {
     return () => {
       tg.MainButton.offClick();
     };
-  }, [view, selectedAmount, tg, updateBalance, isInTelegram]);
+  }, [view, selectedAmount, walletAddress, tg, isInTelegram]);
 
-  const transactions = [
-    { type: 'deposit', amount: 500, date: 'Today, 2:30 PM' },
-    { type: 'win', amount: 150, date: 'Today, 11:45 AM' },
-    { type: 'withdraw', amount: -200, date: 'Yesterday' },
-  ];
+  const formatTransactionType = (type) => {
+    switch (type) {
+      case 'deposit': return { text: 'Deposit', icon: '+', color: 'text-green-400' };
+      case 'withdrawal': return { text: 'Withdrawal', icon: '-', color: 'text-orange-400' };
+      default: return { text: type, icon: '•', color: 'text-gray-400' };
+    }
+  };
+
+  const formatTransactionStatus = (status) => {
+    switch (status) {
+      case 'completed': return { icon: CheckCircle, color: 'text-green-400' };
+      case 'pending': return { icon: Clock, color: 'text-yellow-400' };
+      case 'failed': return { icon: AlertCircle, color: 'text-red-400' };
+      default: return { icon: Clock, color: 'text-gray-400' };
+    }
+  };
+
+  // Show login prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <Layout title="Wallet" navigate={navigate} currentScreen="wallet">
+        <div className="page p-4 flex items-center justify-center min-h-[60vh]">
+          <div className="card p-6 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-gold flex items-center justify-center">
+              <span className="text-2xl">🔒</span>
+            </div>
+            <h3 className="text-xl font-bold mb-2">Login Required</h3>
+            <p className="text-gray-400 mb-4">Please login to access your wallet</p>
+            <button 
+              onClick={() => navigate('home')}
+              className="btn btn-primary"
+            >
+              Go to Login
+            </button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (view === 'deposit' || view === 'withdraw') {
     const isDeposit = view === 'deposit';
+    const limits = isDeposit ? depositLimits : withdrawalLimits;
+    const maxAmount = isDeposit ? limits.max : Math.min(limits.max, balance);
+    
     return (
       <div className="page">
         {/* Header */}
         <div className="header-bar">
           <button 
-            onClick={() => setView('main')}
-            className="flex items-center gap-1 text-white"
+            onClick={() => {
+              setView('main');
+              setError(null);
+              setSuccess(null);
+              setSelectedAmount(null);
+              setCustomAmount('');
+              setWalletAddress('');
+            }}
+            className="btn-icon"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="font-bold text-white">{isDeposit ? 'Deposit' : 'Withdraw'}</span>
+          <span className="header-title">
+            {isDeposit ? 'Deposit' : 'Withdraw'}
+          </span>
           <div className="w-5" />
         </div>
+
+        {/* Error/Success Messages */}
+        {error && (
+          <div className="mx-4 mt-4 p-3 bg-red-900/30 border border-red-500/30 rounded-lg">
+            <p className="text-red-400 text-sm">{error}</p>
+          </div>
+        )}
+        
+        {success && (
+          <div className="mx-4 mt-4 p-3 bg-green-900/30 border border-green-500/30 rounded-lg">
+            <p className="text-green-400 text-sm">{success}</p>
+          </div>
+        )}
 
         {/* Amount Selection */}
         <div className="p-4">
           <div className="card p-4">
-            <p className="text-sm text-[var(--text-muted)] mb-3">Select Amount</p>
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              {(isDeposit ? quickAmounts : [50, 100, 250, 500, 1000]).map((amount) => (
-                <button
-                  key={amount}
-                  onClick={() => {
-                    tg?.HapticFeedback?.selectionChanged();
-                    setSelectedAmount(amount);
-                  }}
-                  disabled={!isDeposit && amount > (user?.balance || 0)}
-                  className={`py-3 rounded-xl font-bold text-sm transition-all ${
-                    selectedAmount === amount
-                      ? isDeposit 
-                        ? 'bg-[#4caf50] text-white' 
-                        : 'bg-[#ff6b35] text-white'
-                      : !isDeposit && amount > (user?.balance || 0)
-                      ? 'bg-[var(--bg-elevated)] opacity-30 text-white'
-                      : 'bg-[var(--bg-elevated)] text-white'
-                  }`}
-                >
-                  ${amount}
-                </button>
-              ))}
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-gray-400">Select Amount (USDT)</p>
+              {!isDeposit && (
+                <p className="text-xs text-gray-500">Balance: {balance.toLocaleString()}</p>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              {quickAmounts.map((amount) => {
+                const disabled = loading || amount > maxAmount;
+                const selected = selectedAmount === amount;
+                
+                return (
+                  <button
+                    key={amount}
+                    disabled={disabled}
+                    className={`py-3 px-4 rounded-xl font-bold text-sm transition-all ${
+                      selected
+                        ? isDeposit 
+                          ? 'bg-green-600 text-white'
+                          : 'bg-orange-600 text-white'
+                        : disabled
+                        ? 'bg-gray-800 opacity-30 text-gray-500'
+                        : 'bg-gray-700 hover:bg-gray-600 text-white'
+                    }`}
+                    onClick={() => {
+                      setSelectedAmount(amount);
+                      setCustomAmount('');
+                    }}
+                  >
+                    ${amount}
+                  </button>
+                );
+              })}
             </div>
 
-            <input
-              type="number"
-              placeholder="Enter custom amount"
-              className="input"
-              onChange={(e) => {
-                const val = Number(e.target.value) || 0;
-                setSelectedAmount(isDeposit ? val : Math.min(val, user?.balance || 0));
-              }}
-            />
+            {/* Custom Amount Input */}
+            <div className="space-y-2">
+              <p className="text-xs text-gray-400">
+                Min: ${limits.min} • Max: ${maxAmount.toLocaleString()} USDT
+              </p>
+              <input
+                type="number"
+                placeholder={`Enter amount (${limits.min}-${maxAmount.toLocaleString()})`}
+                value={customAmount}
+                min="10"
+                max={maxAmount}
+                onChange={(e) => {
+                  const val = Number(e.target.value) || 0;
+                  setCustomAmount(e.target.value);
+                  setSelectedAmount(Math.min(val, maxAmount));
+                }}
+                className="input"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Payment Methods (Deposit only) */}
-        {isDeposit && (
-          <div className="p-4 pt-0">
-            <p className="text-sm text-[var(--text-muted)] mb-3">Payment Method</p>
-            <div className="space-y-2">
-              {[
-                { icon: CreditCard, name: 'Credit Card', desc: 'Instant' },
-                { icon: Bitcoin, name: 'Crypto', desc: 'BTC, ETH, USDT' },
-                { icon: Building2, name: 'Bank Transfer', desc: '1-3 days' },
-              ].map((method, i) => (
-                <button key={i} className="menu-item w-full rounded-xl">
-                  <div className="menu-icon">
-                    <method.icon className="w-5 h-5 text-[var(--text-secondary)]" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="font-semibold text-white text-sm">{method.name}</p>
-                    <p className="text-xs text-[var(--text-muted)]">{method.desc}</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-[var(--text-muted)]" />
-                </button>
-              ))}
+        {/* Wallet Address (Withdrawal only) */}
+        {!isDeposit && (
+          <div className="px-4 pb-4">
+            <div className="card p-4">
+              <p className="text-sm text-gray-400 mb-3">USDT Wallet Address (TRC20)</p>
+              <input
+                type="text"
+                placeholder="Enter your USDT wallet address"
+                value={walletAddress}
+                onChange={(e) => setWalletAddress(e.target.value)}
+                className="input"
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                Make sure this is a valid USDT (TRC20) Address
+              </p>
             </div>
           </div>
         )}
 
-        {/* Fallback button */}
-        {!isInTelegram && selectedAmount && (
+        {/* Payment Method (Deposit only) */}
+        {isDeposit && (
+          <div className="px-4">
+            <div className="card p-3 border border-green-500/30 bg-green-500/10">
+              <div className="flex items-center gap-3">
+                <Bitcoin className="w-5 h-5 text-green-400" />
+                <div className="flex-1">
+                  <p className="font-semibold text-white">USDT (TRC20)</p>
+                  <p className="text-xs text-gray-400">Payment Method</p>
+                </div>
+                <CheckCircle className="w-4 h-4 text-green-400" />
+              </div>
+              <div className="space-y-2 mt-2">
+                <p className="text-xs text-gray-400">Instant • Low fees</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Fallback button for non-Telegram */}
+        {!isInTelegram && selectedAmount >= limits.min && (isDeposit || walletAddress.trim()) && (
           <div className="p-4">
-            <button 
-              onClick={() => {
-                updateBalance(isDeposit ? selectedAmount : -selectedAmount);
-                setView('main');
-                setSelectedAmount(null);
-              }}
-              className={`w-full py-4 rounded-xl font-bold ${
-                isDeposit 
-                  ? 'bg-[#4caf50] text-white' 
-                  : 'bg-[#ff6b35] text-white'
+            <button
+              disabled={loading}
+              onClick={isDeposit ? handleDeposit : handleWithdrawal}
+              className={`w-full py-4 rounded-xl font-bold transition-all ${
+                loading 
+                  ? 'bg-gray-600 text-gray-300' 
+                  : isDeposit
+                  ? 'bg-green-600 hover:bg-green-700 text-white'
+                  : 'bg-orange-600 hover:bg-orange-700 text-white'
               }`}
             >
-              {isDeposit ? 'Deposit' : 'Withdraw'} ${selectedAmount}
+              {loading 
+                ? 'Processing...' 
+                : `${isDeposit ? 'Deposit' : 'Withdraw'} ${selectedAmount} USDT`
+              }
             </button>
           </div>
         )}
@@ -166,111 +387,142 @@ const Wallet = ({ user, updateBalance, navigate }) => {
   }
 
   return (
-    <Layout title="Wallet" user={user} navigate={navigate} currentScreen="wallet">
-      <div className="page p-4 space-y-6">
-      {/* Header */}
-      <div className="header-bar">
-        <button 
-          onClick={() => navigate('home')}
-          className="w-8 h-8 rounded-full bg-[#0088cc] flex items-center justify-center flex-shrink-0"
-        >
-          <span className="text-white text-sm">✈</span>
-        </button>
-        <span className="font-bold text-white truncate flex-1 min-w-0 text-center">My Wallet</span>
-        <div className="balance-chip flex-shrink-0">
-          <div className="coin-icon">$</div>
-          <span className="text-[var(--gold)] truncate">{user?.balance?.toLocaleString() || '2,368.50'}</span>
-        </div>
-      </div>
+    <Layout title="Wallet" navigate={navigate} currentScreen="wallet">
+      <div className="page">
+        {/* Loading State */}
+        {loading && (
+          <div className="card p-4 text-center">
+            <div className="loading-dots mb-2">
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+            </div>
+            <p className="text-sm text-gray-400">Loading wallet data...</p>
+          </div>
+        )}
 
-      {/* Balance Card - Premium Casino Style */}
-      <div className="p-4">
+        {/* Balance Card */}
         <div className="wallet-card">
           <div className="casino-ornament mb-6"></div>
-          <p className="wallet-balance-label">USDT Balance</p>
-          <p className="wallet-balance">{user?.balance?.toLocaleString() || '2,368.50'}</p>
-          
-          <div className="flex gap-2 sm:gap-4 mt-8">
+          <div className="space-y-4 p-4">
+            <div className="balance-chip flex items-center">
+              <div className="coin-icon w-8 h-8 rounded-full bg-[#0088cc] flex items-center justify-center">
+                <span className="text-white text-sm">₮</span>
+              </div>
+              <span className="font-bold text-white text-lg min-w-0 flex-1 truncate">
+                USDT Wallet
+              </span>
+              <button 
+                onClick={() => navigate('home')}
+                className="w-8 h-8 rounded-full bg-[#0088cc] flex items-center justify-center flex-shrink-0"
+              >
+                <span className="text-white text-sm">✈</span>
+              </button>
+            </div>
+
+            <div className="wallet-balance">
+              <p className="wallet-balance-label">Balance</p>
+              <p className="wallet-balance-amount truncate">{balance.toLocaleString()} USDT</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Menu Items */}
+        <div className="space-y-6 p-4">
+          <div className="flex gap-4 sm:gap-2">
             <button 
               onClick={() => {
-                tg?.HapticFeedback?.impactOccurred('light');
+                tg?.HapticFeedback?.impactOccurred?.('light');
                 setView('deposit');
+                setError(null);
+                setSuccess(null);
               }}
               className="btn btn-success flex-1 btn-lg font-bold relative overflow-hidden group min-w-0"
+              disabled={loading}
             >
-              <span className="relative z-10 flex items-center justify-center gap-1 sm:gap-2 truncate">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              <span className="flex items-center justify-center gap-1 sm:gap-2 p-1 truncate">
                 <span className="flex-shrink-0">💰</span>
                 <span className="truncate">Deposit</span>
               </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             </button>
+            
             <button 
               onClick={() => {
-                tg?.HapticFeedback?.impactOccurred('light');
+                tg?.HapticFeedback?.impactOccurred?.('light');
                 setView('withdraw');
+                setError(null);
+                setSuccess(null);
               }}
-              className="btn btn-secondary flex-1 btn-lg font-bold border-2 border-orange-500/30 hover:border-orange-500/60 hover:bg-orange-500/10 min-w-0"
+              className="btn btn-secondary flex-1 btn-lg font-bold relative overflow-hidden group min-w-0"
+              disabled={loading || balance <= 0}
             >
-              <span className="flex items-center justify-center gap-1 sm:gap-2 truncate">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              <span className="flex items-center justify-center gap-1 sm:gap-2 p-1 truncate">
                 <span className="flex-shrink-0">💸</span>
                 <span className="truncate">Withdraw</span>
               </span>
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* Menu Items - Premium Casino Style */}
-      <div className="px-4">
-        <button className="menu-item w-full rounded-t-2xl group">
-          <div className="menu-icon group-hover:scale-110 transition-transform duration-300">
-            <History className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-emerald-400 transition-colors duration-300" />
-          </div>
-          <span className="flex-1 text-left font-semibold text-white group-hover:text-emerald-400 transition-colors duration-300">Transaction History</span>
-          <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:text-emerald-400 group-hover:translate-x-1 transition-all duration-300" />
-        </button>
-        <button className="menu-item w-full rounded-b-2xl group">
-          <div className="menu-icon group-hover:scale-110 transition-transform duration-300">
-            <Gift className="w-5 h-5 text-[var(--gold)] group-hover:scale-110 transition-transform duration-300" />
-          </div>
-          <span className="flex-1 text-left font-semibold text-white group-hover:text-gold transition-colors duration-300">My Bonuses</span>
-          <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:text-gold group-hover:translate-x-1 transition-all duration-300" />
-        </button>
-      </div>
-
-      {/* Recent Transactions - Premium Casino Style */}
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm text-[var(--text-muted)] uppercase tracking-wider font-semibold">Recent Activity</p>
-          <button className="text-xs text-gold hover:text-gold-light transition-colors font-medium">
-            View All →
-          </button>
-        </div>
-        <div className="card">
-          <div className="space-y-3">
-            {transactions.map((tx, i) => (
-              <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-gold/20 transition-all duration-300 group">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center border-2 transition-all duration-300 ${
-                  tx.type === 'deposit' ? 'bg-green-500/20 border-green-500/30 group-hover:border-green-500/60' :
-                  tx.type === 'win' ? 'bg-amber-500/20 border-amber-500/30 group-hover:border-amber-500/60' : 
-                  'bg-red-500/20 border-red-500/30 group-hover:border-red-500/60'
-                }`}>
-                  <span className="text-xl group-hover:scale-110 transition-transform duration-300">
-                    {tx.type === 'deposit' ? '💵' : tx.type === 'win' ? '🏆' : '💸'}
-                  </span>
+          {/* Recent Transactions */}
+          <div className="card">
+            <div className="p-4 flex items-center justify-between border-b border-gray-800">
+              <p className="text-sm font-semibold text-[var(--text-gold)] uppercase tracking-wide">Recent Transactions</p>
+              <button 
+                onClick={() => loadWalletData()}
+                className="text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-300 flex items-center gap-1"
+              >
+                <History className="w-4 h-4" />
+                <span>Refresh</span>
+              </button>
+            </div>
+            
+            {transactions.length === 0 ? (
+              <div className="p-6 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-800 flex items-center justify-center">
+                  <History className="w-6 h-6 text-gray-400" />
                 </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-white text-sm capitalize tracking-tight">{tx.type}</p>
-                  <p className="text-xs text-[var(--text-muted)] mt-0.5">{tx.date}</p>
-                </div>
-                <p className={`font-bold text-lg tracking-tight ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {tx.amount > 0 ? '+' : ''}${Math.abs(tx.amount).toLocaleString()}
-                </p>
+                <p className="text-gray-400 text-sm">No transactions yet</p>
+                <p className="text-gray-500 text-xs mt-1">Your transaction history will appear here</p>
               </div>
-            ))}
+            ) : (
+              <div className="space-y-3">
+                {transactions.slice(0, 5).map((tx, i) => {
+                  const txType = formatTransactionType(tx.type);
+                  const txStatus = formatTransactionStatus(tx.status);
+                  const StatusIcon = txStatus.icon;
+                  
+                  return (
+                    <div key={i} className="flex items-center gap-4 p-3 hover:bg-white/5 rounded-xl transition-all duration-300 group">
+                      <div className={`w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center border border-gray-700 group-hover:border-gray-600 transition-all duration-300 ${
+                        tx.type === 'deposit' 
+                          ? 'bg-green-500/20 border-green-500/30 group-hover:border-green-500/60' 
+                          : 'bg-red-500/20 border-red-500/30 group-hover:border-red-500/60'
+                      }`}>
+                        <span className={`text-xl group-hover:scale-110 transition-transform duration-300 ${txType.color}`}>
+                          {txType.icon}
+                        </span>
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-white text-sm capitalize tracking-tight">{txType.text}</p>
+                          <StatusIcon className={`w-3 h-3 ${txStatus.color}`} />
+                        </div>
+                        <p className="text-xs text-gray-400 mt-0.5">{new Date(tx.created_at).toLocaleDateString()} • {tx.status}</p>
+                      </div>
+                      
+                      <p className={`font-bold text-lg tracking-tight ${tx.type === 'deposit' ? '+' : '-'}${tx.amount.toLocaleString()}`}>
+                        {tx.type === 'deposit' ? '+' : '-'}${tx.amount.toLocaleString()}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
-      </div>
       </div>
     </Layout>
   );
