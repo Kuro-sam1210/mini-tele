@@ -1,150 +1,184 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Shield, Loader2, CheckCircle2 } from 'lucide-react';
+import { useTelegram } from '../contexts/TelegramContext';
 
 const LoginPage = ({ onNavigate, onLogin }) => {
+  const { user: tgUser, isTelegram, hapticFeedback } = useTelegram();
   const [isLoading, setIsLoading] = useState(false);
   const [telegramUser, setTelegramUser] = useState(null);
+  const [loadingStep, setLoadingStep] = useState(0);
 
-  // Simulate Telegram WebApp initialization
   useEffect(() => {
-    // In a real app, this would be: window.Telegram.WebApp.initDataUnsafe
-    const mockTelegramData = {
-      user: {
-        id: 123456789,
-        first_name: "John",
-        last_name: "Doe",
-        username: "johndoe",
-        photo_url: "https://via.placeholder.com/100"
-      }
-    };
-    
-    // Simulate loading delay
-    setTimeout(() => {
-      setTelegramUser(mockTelegramData.user);
-    }, 1000);
-  }, []);
+    if (isTelegram && tgUser) {
+      // Use real Telegram user data
+      setTelegramUser({
+        id: tgUser.id,
+        first_name: tgUser.firstName,
+        last_name: tgUser.lastName,
+        username: tgUser.username,
+        photo_url: tgUser.photoUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${tgUser.id}`,
+      });
+    } else {
+      // Mock data for browser development
+      setTimeout(() => {
+        setTelegramUser({
+          id: 123456789,
+          first_name: "John",
+          last_name: "Doe",
+          username: "johndoe",
+          photo_url: "https://api.dicebear.com/7.x/avataaars/svg?seed=john"
+        });
+      }, 800);
+    }
+  }, [isTelegram, tgUser]);
 
   const handleTelegramLogin = async () => {
     setIsLoading(true);
+    hapticFeedback?.('impact');
     
-    // Simulate API call to authenticate with backend
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mock successful login
-      const userData = {
-        id: telegramUser.id,
-        name: `${telegramUser.first_name} ${telegramUser.last_name}`,
-        username: telegramUser.username,
-        avatar: telegramUser.photo_url,
-        balance: 1000.00,
-        isAgent: false
-      };
-      
-      onLogin(userData);
-      onNavigate('home');
-    } catch (error) {
-      console.error('Login failed:', error);
-    } finally {
-      setIsLoading(false);
+    // Simulate authentication steps
+    for (let i = 1; i <= 3; i++) {
+      await new Promise(resolve => setTimeout(resolve, 600));
+      setLoadingStep(i);
+      hapticFeedback?.('selection');
     }
+    
+    const userData = {
+      id: telegramUser.id,
+      name: `${telegramUser.first_name} ${telegramUser.last_name}`.trim(),
+      username: telegramUser.username || `user${telegramUser.id}`,
+      avatar: telegramUser.photo_url,
+      balance: 2368.50, // This would come from your backend
+      isAgent: false
+    };
+    
+    hapticFeedback?.('notification');
+    onLogin(userData);
+    onNavigate('home');
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 text-white flex items-center justify-center px-6">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <button 
-            onClick={() => onNavigate('landing')}
-            className="absolute top-6 left-6 text-white hover:text-yellow-400 transition-colors"
-          >
-            ← Back
-          </button>
-          
-          <h1 className="text-3xl font-bold mb-2">🎰 Welcome Back</h1>
-          <p className="text-lg opacity-80">Sign in to continue playing</p>
-        </div>
+  const loadingSteps = [
+    'Verifying identity...',
+    'Securing connection...',
+    'Loading account...'
+  ];
 
-        {/* Login Card */}
-        <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8 shadow-2xl">
-          {!telegramUser ? (
-            // Loading Telegram Data
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4"></div>
-              <p className="text-lg mb-2">Connecting to Telegram...</p>
-              <p className="text-sm opacity-60">Please wait while we verify your identity</p>
+  return (
+    <div className="min-h-screen bg-[--bg-base] text-white flex flex-col">
+      {/* Header */}
+      <header className="px-4 py-4">
+        <button 
+          onClick={() => {
+            hapticFeedback?.('impact');
+            onNavigate('landing');
+          }}
+          className="w-10 h-10 rounded-xl bg-[--bg-card] border border-[--border] flex items-center justify-center hover:bg-[--bg-elevated] transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+      </header>
+
+      {/* Content */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 pb-12">
+        {!telegramUser ? (
+          // Loading Telegram Data
+          <div className="text-center animate-fade-in">
+            <div className="w-16 h-16 rounded-2xl bg-[--bg-card] border border-[--border] flex items-center justify-center mx-auto mb-6">
+              <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
             </div>
-          ) : (
-            // Telegram User Loaded
-            <div className="text-center">
-              {/* User Avatar */}
-              <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-2">
+              {isTelegram ? 'Loading Telegram Data' : 'Connecting to Telegram'}
+            </h2>
+            <p className="text-[--text-secondary] text-sm">Please wait...</p>
+          </div>
+        ) : (
+          // User Loaded
+          <div className="w-full max-w-sm animate-fade-in">
+            {/* User Card */}
+            <div className="card p-6 mb-6">
+              <div className="flex items-center gap-4 mb-6">
                 <img 
                   src={telegramUser.photo_url} 
                   alt="Profile"
-                  className="w-20 h-20 rounded-full mx-auto border-4 border-yellow-400 shadow-lg"
+                  className="w-16 h-16 rounded-2xl bg-[--bg-elevated]"
                 />
-              </div>
-
-              {/* User Info */}
-              <div className="mb-8">
-                <h2 className="text-xl font-bold mb-1">
-                  {telegramUser.first_name} {telegramUser.last_name}
-                </h2>
-                <p className="text-sm opacity-70">@{telegramUser.username}</p>
-                <p className="text-xs opacity-50 mt-2">ID: {telegramUser.id}</p>
-              </div>
-
-              {/* Login Button */}
-              <button
-                onClick={handleTelegramLogin}
-                disabled={isLoading}
-                className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all duration-200 ${
-                  isLoading 
-                    ? 'bg-gray-600 cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black hover:shadow-xl transform hover:scale-105'
-                }`}
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
-                    Signing In...
-                  </div>
-                ) : (
-                  '🚀 Continue with Telegram'
-                )}
-              </button>
-
-              {/* Security Note */}
-              <div className="mt-6 p-4 bg-green-500 bg-opacity-20 rounded-lg border border-green-400 border-opacity-30">
-                <div className="flex items-center justify-center mb-2">
-                  <span className="text-green-400 mr-2">🔒</span>
-                  <span className="text-sm font-medium">Secure Login</span>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg font-semibold truncate">
+                    {telegramUser.first_name} {telegramUser.last_name}
+                  </h2>
+                  <p className="text-[--text-secondary] text-sm">
+                    {telegramUser.username ? `@${telegramUser.username}` : `ID: ${telegramUser.id}`}
+                  </p>
                 </div>
-                <p className="text-xs opacity-70">
-                  Your Telegram account is automatically verified. No passwords needed.
-                </p>
+                <CheckCircle2 className="w-6 h-6 text-emerald-500 flex-shrink-0" />
+              </div>
+
+              {/* Security Badge */}
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <Shield className="w-5 h-5 text-emerald-500" />
+                <div>
+                  <p className="text-sm font-medium text-emerald-500">
+                    {isTelegram ? 'Telegram Verified' : 'Development Mode'}
+                  </p>
+                  <p className="text-xs text-[--text-muted]">
+                    {isTelegram ? 'Secured by Telegram' : 'Using mock data'}
+                  </p>
+                </div>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Features */}
-        <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-          <div className="bg-white bg-opacity-5 rounded-lg p-3">
-            <div className="text-lg mb-1">⚡</div>
-            <p className="text-xs opacity-70">Instant</p>
+            {/* Login Button */}
+            <button
+              onClick={handleTelegramLogin}
+              disabled={isLoading}
+              className={`btn w-full py-4 text-base mb-4 ${isLoading ? 'btn-secondary' : 'btn-primary'}`}
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-3">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>{loadingSteps[loadingStep - 1] || 'Processing...'}</span>
+                </div>
+              ) : (
+                'Continue with Telegram'
+              )}
+            </button>
+
+            {/* Loading Progress */}
+            {isLoading && (
+              <div className="space-y-2 animate-fade-in">
+                {loadingSteps.map((step, i) => (
+                  <div 
+                    key={i}
+                    className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+                      loadingStep > i 
+                        ? 'bg-emerald-500/10 border border-emerald-500/20' 
+                        : loadingStep === i + 1
+                        ? 'bg-[--bg-card] border border-[--border]'
+                        : 'opacity-40'
+                    }`}
+                  >
+                    {loadingStep > i ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    ) : loadingStep === i + 1 ? (
+                      <Loader2 className="w-4 h-4 text-amber-500 animate-spin" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border border-[--border]" />
+                    )}
+                    <span className="text-sm">{step}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Terms */}
+            {!isLoading && (
+              <p className="text-center text-xs text-[--text-muted] mt-6">
+                By continuing, you agree to our Terms of Service
+              </p>
+            )}
           </div>
-          <div className="bg-white bg-opacity-5 rounded-lg p-3">
-            <div className="text-lg mb-1">🔐</div>
-            <p className="text-xs opacity-70">Secure</p>
-          </div>
-          <div className="bg-white bg-opacity-5 rounded-lg p-3">
-            <div className="text-lg mb-1">🎮</div>
-            <p className="text-xs opacity-70">Ready</p>
-          </div>
-        </div>
-      </div>
+        )}
+      </main>
     </div>
   );
 };

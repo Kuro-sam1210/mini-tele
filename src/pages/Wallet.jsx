@@ -1,36 +1,33 @@
 import { useState, useEffect } from 'react';
-import { ArrowDownLeft, ArrowUpRight, CreditCard, Bitcoin, Building2, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, History, Gift, CreditCard, Bitcoin, Building2 } from 'lucide-react';
+import Layout from '../components/Layout';
 
 const Wallet = ({ user, updateBalance, navigate }) => {
   const tg = window.Telegram?.WebApp;
   const [view, setView] = useState('main');
   const [selectedAmount, setSelectedAmount] = useState(null);
+  const [isInTelegram, setIsInTelegram] = useState(false);
 
   const quickAmounts = [100, 500, 1000, 2000, 5000];
 
-  // Set dark header in Telegram
   useEffect(() => {
-    if (tg) {
-      tg.setHeaderColor('#09090b');
-      tg.setBackgroundColor('#09090b');
+    // Check if we're in Telegram environment
+    const inTelegram = tg && tg.initData && tg.initData.length > 0;
+    setIsInTelegram(inTelegram);
+    
+    if (inTelegram) {
+      tg.setHeaderColor('#000000');
+      tg.setBackgroundColor('#000000');
     }
   }, [tg]);
 
-  const transactions = [
-    { type: 'deposit', amount: 500, date: 'Today, 2:30 PM' },
-    { type: 'win', amount: 150, date: 'Today, 11:45 AM' },
-    { type: 'withdraw', amount: -200, date: 'Yesterday' },
-    { type: 'deposit', amount: 1000, date: 'Jan 5' },
-  ];
-
-  // Use MainButton for deposit/withdraw confirmation
   useEffect(() => {
-    if (!tg?.MainButton) return;
+    if (!isInTelegram || !tg?.MainButton) return;
 
     if (view === 'deposit' && selectedAmount) {
       tg.MainButton.setText(`Deposit $${selectedAmount}`);
-      tg.MainButton.color = '#f59e0b';
-      tg.MainButton.textColor = '#000000';
+      tg.MainButton.color = '#4caf50';
+      tg.MainButton.textColor = '#ffffff';
       tg.MainButton.show();
       tg.MainButton.onClick(() => {
         tg.HapticFeedback?.notificationOccurred('success');
@@ -40,7 +37,7 @@ const Wallet = ({ user, updateBalance, navigate }) => {
       });
     } else if (view === 'withdraw' && selectedAmount) {
       tg.MainButton.setText(`Withdraw $${selectedAmount}`);
-      tg.MainButton.color = '#ef4444';
+      tg.MainButton.color = '#ff6b35';
       tg.MainButton.textColor = '#ffffff';
       tg.MainButton.show();
       tg.MainButton.onClick(() => {
@@ -56,30 +53,50 @@ const Wallet = ({ user, updateBalance, navigate }) => {
     return () => {
       tg.MainButton.offClick();
     };
-  }, [view, selectedAmount, tg, updateBalance]);
+  }, [view, selectedAmount, tg, updateBalance, isInTelegram]);
 
-  if (view === 'deposit') {
+  const transactions = [
+    { type: 'deposit', amount: 500, date: 'Today, 2:30 PM' },
+    { type: 'win', amount: 150, date: 'Today, 11:45 AM' },
+    { type: 'withdraw', amount: -200, date: 'Yesterday' },
+  ];
+
+  if (view === 'deposit' || view === 'withdraw') {
+    const isDeposit = view === 'deposit';
     return (
       <div className="page">
-        <div className="px-4 pt-4 pb-6">
-          <h1 className="text-xl font-bold mb-1 text-white">Deposit</h1>
-          <p className="text-sm text-[var(--text-muted)]">Add funds to your account</p>
+        {/* Header */}
+        <div className="header-bar">
+          <button 
+            onClick={() => setView('main')}
+            className="flex items-center gap-1 text-white"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <span className="font-bold text-white">{isDeposit ? 'Deposit' : 'Withdraw'}</span>
+          <div className="w-5" />
         </div>
 
-        <div className="px-4 pb-6">
+        {/* Amount Selection */}
+        <div className="p-4">
           <div className="card p-4">
-            <h3 className="font-semibold mb-4 text-white">Select Amount</h3>
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              {quickAmounts.map((amount) => (
+            <p className="text-sm text-[var(--text-muted)] mb-3">Select Amount</p>
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              {(isDeposit ? quickAmounts : [50, 100, 250, 500, 1000]).map((amount) => (
                 <button
                   key={amount}
                   onClick={() => {
                     tg?.HapticFeedback?.selectionChanged();
                     setSelectedAmount(amount);
                   }}
-                  className={`py-4 rounded-xl font-semibold transition-all ${
+                  disabled={!isDeposit && amount > (user?.balance || 0)}
+                  className={`py-3 rounded-xl font-bold text-sm transition-all ${
                     selectedAmount === amount
-                      ? 'bg-amber-500 text-black'
+                      ? isDeposit 
+                        ? 'bg-[#4caf50] text-white' 
+                        : 'bg-[#ff6b35] text-white'
+                      : !isDeposit && amount > (user?.balance || 0)
+                      ? 'bg-[var(--bg-elevated)] opacity-30 text-white'
                       : 'bg-[var(--bg-elevated)] text-white'
                   }`}
                 >
@@ -90,110 +107,57 @@ const Wallet = ({ user, updateBalance, navigate }) => {
 
             <input
               type="number"
-              placeholder="Custom amount"
-              className="input w-full"
-              onChange={(e) => setSelectedAmount(Number(e.target.value) || null)}
+              placeholder="Enter custom amount"
+              className="input"
+              onChange={(e) => {
+                const val = Number(e.target.value) || 0;
+                setSelectedAmount(isDeposit ? val : Math.min(val, user?.balance || 0));
+              }}
             />
           </div>
         </div>
 
-        <div className="px-4 pb-6">
-          <h3 className="font-semibold mb-3 text-white">Payment Method</h3>
-          <div className="space-y-3">
-            {[
-              { icon: CreditCard, name: 'Card', color: 'text-blue-500' },
-              { icon: Bitcoin, name: 'Crypto', color: 'text-amber-500' },
-              { icon: Building2, name: 'Bank', color: 'text-emerald-500' },
-            ].map((method, i) => (
-              <button key={i} className="card w-full p-4 flex items-center gap-4">
-                <method.icon className={`w-6 h-6 ${method.color}`} />
-                <span className="font-medium text-white">{method.name}</span>
-                <ChevronRight className="w-5 h-5 text-[var(--text-muted)] ml-auto" />
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Fallback button for non-Telegram */}
-        {!tg?.MainButton && selectedAmount && (
-          <div className="px-4 pb-8">
-            <button 
-              onClick={() => {
-                updateBalance(selectedAmount);
-                setView('main');
-                setSelectedAmount(null);
-              }}
-              className="btn-primary w-full py-4"
-            >
-              Deposit ${selectedAmount}
-            </button>
+        {/* Payment Methods (Deposit only) */}
+        {isDeposit && (
+          <div className="p-4 pt-0">
+            <p className="text-sm text-[var(--text-muted)] mb-3">Payment Method</p>
+            <div className="space-y-2">
+              {[
+                { icon: CreditCard, name: 'Credit Card', desc: 'Instant' },
+                { icon: Bitcoin, name: 'Crypto', desc: 'BTC, ETH, USDT' },
+                { icon: Building2, name: 'Bank Transfer', desc: '1-3 days' },
+              ].map((method, i) => (
+                <button key={i} className="menu-item w-full rounded-xl">
+                  <div className="menu-icon">
+                    <method.icon className="w-5 h-5 text-[var(--text-secondary)]" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-semibold text-white text-sm">{method.name}</p>
+                    <p className="text-xs text-[var(--text-muted)]">{method.desc}</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-[var(--text-muted)]" />
+                </button>
+              ))}
+            </div>
           </div>
         )}
-      </div>
-    );
-  }
 
-  if (view === 'withdraw') {
-    return (
-      <div className="page">
-        <div className="px-4 pt-4 pb-6">
-          <h1 className="text-xl font-bold mb-1 text-white">Withdraw</h1>
-          <p className="text-sm text-[var(--text-muted)]">
-            Available: ${user?.balance?.toFixed(2) || '0.00'}
-          </p>
-        </div>
-
-        <div className="px-4 pb-6">
-          <div className="card p-4">
-            <h3 className="font-semibold mb-4 text-white">Select Amount</h3>
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              {[50, 100, 250, 500, 1000].map((amount) => (
-                <button
-                  key={amount}
-                  onClick={() => {
-                    tg?.HapticFeedback?.selectionChanged();
-                    setSelectedAmount(amount);
-                  }}
-                  disabled={amount > (user?.balance || 0)}
-                  className={`py-4 rounded-xl font-semibold transition-all ${
-                    selectedAmount === amount
-                      ? 'bg-amber-500 text-black'
-                      : amount > (user?.balance || 0)
-                      ? 'bg-[var(--bg-elevated)] opacity-50 text-white'
-                      : 'bg-[var(--bg-elevated)] text-white'
-                  }`}
-                >
-                  ${amount}
-                </button>
-              ))}
-            </div>
-
-            <input
-              type="number"
-              placeholder="Custom amount"
-              className="input w-full"
-              max={user?.balance || 0}
-              onChange={(e) => setSelectedAmount(Math.min(Number(e.target.value) || 0, user?.balance || 0))}
-            />
-            <p className="text-xs text-[var(--text-muted)] mt-2">
-              Min: $50 • Max: $10,000/day
-            </p>
-          </div>
-        </div>
-
-        {/* Fallback button for non-Telegram */}
-        {!tg?.MainButton && selectedAmount && (
-          <div className="px-4 pb-8">
+        {/* Fallback button */}
+        {!isInTelegram && selectedAmount && (
+          <div className="p-4">
             <button 
               onClick={() => {
-                updateBalance(-selectedAmount);
+                updateBalance(isDeposit ? selectedAmount : -selectedAmount);
                 setView('main');
                 setSelectedAmount(null);
               }}
-              className="btn-primary w-full py-4"
-              style={{ background: '#ef4444' }}
+              className={`w-full py-4 rounded-xl font-bold ${
+                isDeposit 
+                  ? 'bg-[#4caf50] text-white' 
+                  : 'bg-[#ff6b35] text-white'
+              }`}
             >
-              Withdraw ${selectedAmount}
+              {isDeposit ? 'Deposit' : 'Withdraw'} ${selectedAmount}
             </button>
           </div>
         )}
@@ -202,65 +166,113 @@ const Wallet = ({ user, updateBalance, navigate }) => {
   }
 
   return (
-    <div className="page">
-      {/* Balance */}
-      <div className="px-4 pt-4 pb-6">
-        <div className="card p-6 text-center bg-gradient-to-br from-emerald-500/20 to-transparent">
-          <p className="text-sm text-[var(--text-muted)] mb-1">Total Balance</p>
-          <p className="text-4xl font-bold mb-6 text-white">${user?.balance?.toFixed(2) || '0.00'}</p>
+    <Layout title="Wallet" user={user} navigate={navigate} currentScreen="wallet">
+      <div className="page p-4 space-y-6">
+      {/* Header */}
+      <div className="header-bar">
+        <button 
+          onClick={() => navigate('home')}
+          className="w-8 h-8 rounded-full bg-[#0088cc] flex items-center justify-center flex-shrink-0"
+        >
+          <span className="text-white text-sm">✈</span>
+        </button>
+        <span className="font-bold text-white truncate flex-1 min-w-0 text-center">My Wallet</span>
+        <div className="balance-chip flex-shrink-0">
+          <div className="coin-icon">$</div>
+          <span className="text-[var(--gold)] truncate">{user?.balance?.toLocaleString() || '2,368.50'}</span>
+        </div>
+      </div>
+
+      {/* Balance Card - Premium Casino Style */}
+      <div className="p-4">
+        <div className="wallet-card">
+          <div className="casino-ornament mb-6"></div>
+          <p className="wallet-balance-label">USDT Balance</p>
+          <p className="wallet-balance">{user?.balance?.toLocaleString() || '2,368.50'}</p>
           
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-4 mt-8">
             <button 
               onClick={() => {
                 tg?.HapticFeedback?.impactOccurred('light');
                 setView('deposit');
               }}
-              className="btn-primary flex-1 py-3 flex items-center justify-center gap-2"
+              className="btn btn-success flex-1 btn-lg font-bold relative overflow-hidden group min-w-0"
             >
-              <ArrowDownLeft className="w-5 h-5" />
-              Deposit
+              <span className="relative z-10 flex items-center justify-center gap-1 sm:gap-2 truncate">
+                <span className="flex-shrink-0">💰</span>
+                <span className="truncate">Deposit</span>
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             </button>
             <button 
               onClick={() => {
                 tg?.HapticFeedback?.impactOccurred('light');
                 setView('withdraw');
               }}
-              className="btn-secondary flex-1 py-3 flex items-center justify-center gap-2"
+              className="btn btn-secondary flex-1 btn-lg font-bold border-2 border-orange-500/30 hover:border-orange-500/60 hover:bg-orange-500/10 min-w-0"
             >
-              <ArrowUpRight className="w-5 h-5" />
-              Withdraw
+              <span className="flex items-center justify-center gap-1 sm:gap-2 truncate">
+                <span className="flex-shrink-0">💸</span>
+                <span className="truncate">Withdraw</span>
+              </span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Transactions */}
-      <div className="px-4 pb-8">
-        <h2 className="text-sm font-semibold text-[var(--text-muted)] mb-3 uppercase tracking-wider">
-          Recent Transactions
-        </h2>
-        <div className="card divide-y divide-white/5">
-          {transactions.map((tx, i) => (
-            <div key={i} className="p-4 flex items-center gap-4">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                tx.type === 'deposit' ? 'bg-emerald-500/10' :
-                tx.type === 'win' ? 'bg-amber-500/10' : 'bg-red-500/10'
-              }`}>
-                {tx.type === 'deposit' ? <ArrowDownLeft className="w-5 h-5 text-emerald-500" /> :
-                 tx.type === 'win' ? '🎉' : <ArrowUpRight className="w-5 h-5 text-red-500" />}
+      {/* Menu Items - Premium Casino Style */}
+      <div className="px-4">
+        <button className="menu-item w-full rounded-t-2xl group">
+          <div className="menu-icon group-hover:scale-110 transition-transform duration-300">
+            <History className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-emerald-400 transition-colors duration-300" />
+          </div>
+          <span className="flex-1 text-left font-semibold text-white group-hover:text-emerald-400 transition-colors duration-300">Transaction History</span>
+          <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:text-emerald-400 group-hover:translate-x-1 transition-all duration-300" />
+        </button>
+        <button className="menu-item w-full rounded-b-2xl group">
+          <div className="menu-icon group-hover:scale-110 transition-transform duration-300">
+            <Gift className="w-5 h-5 text-[var(--gold)] group-hover:scale-110 transition-transform duration-300" />
+          </div>
+          <span className="flex-1 text-left font-semibold text-white group-hover:text-gold transition-colors duration-300">My Bonuses</span>
+          <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:text-gold group-hover:translate-x-1 transition-all duration-300" />
+        </button>
+      </div>
+
+      {/* Recent Transactions - Premium Casino Style */}
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm text-[var(--text-muted)] uppercase tracking-wider font-semibold">Recent Activity</p>
+          <button className="text-xs text-gold hover:text-gold-light transition-colors font-medium">
+            View All →
+          </button>
+        </div>
+        <div className="card">
+          <div className="space-y-3">
+            {transactions.map((tx, i) => (
+              <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-gold/20 transition-all duration-300 group">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center border-2 transition-all duration-300 ${
+                  tx.type === 'deposit' ? 'bg-green-500/20 border-green-500/30 group-hover:border-green-500/60' :
+                  tx.type === 'win' ? 'bg-amber-500/20 border-amber-500/30 group-hover:border-amber-500/60' : 
+                  'bg-red-500/20 border-red-500/30 group-hover:border-red-500/60'
+                }`}>
+                  <span className="text-xl group-hover:scale-110 transition-transform duration-300">
+                    {tx.type === 'deposit' ? '💵' : tx.type === 'win' ? '🏆' : '💸'}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-white text-sm capitalize tracking-tight">{tx.type}</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">{tx.date}</p>
+                </div>
+                <p className={`font-bold text-lg tracking-tight ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {tx.amount > 0 ? '+' : ''}${Math.abs(tx.amount).toLocaleString()}
+                </p>
               </div>
-              <div className="flex-1">
-                <p className="font-medium capitalize text-white">{tx.type}</p>
-                <p className="text-xs text-[var(--text-muted)]">{tx.date}</p>
-              </div>
-              <p className={`font-semibold ${tx.amount > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                {tx.amount > 0 ? '+' : ''}${Math.abs(tx.amount)}
-              </p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+      </div>
+    </Layout>
   );
 };
 
