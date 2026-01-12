@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, Menu, X, Home, Gamepad2, Wallet, User, Settings } from 'lucide-react';
 
-const Layout = ({ children, title, showBack = false, onBack, user }) => {
+const Layout = ({ children, title, showBack = false, onBack, user, navigate, currentScreen = 'home' }) => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const tg = window.Telegram?.WebApp;
 
@@ -13,16 +13,17 @@ const Layout = ({ children, title, showBack = false, onBack, user }) => {
   }, [tg]);
 
   const navigation = [
-    { id: 'home', label: 'Home', icon: Home, path: '/' },
-    { id: 'games', label: 'Games', icon: Gamepad2, path: '/game' },
-    { id: 'wallet', label: 'Wallet', icon: Wallet, path: '/wallet' },
-    { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
+    { id: 'home', label: 'Home', icon: Home, screen: 'home' },
+    { id: 'games', label: 'Games', icon: Gamepad2, screen: 'game' },
+    { id: 'wallet', label: 'Wallet', icon: Wallet, screen: 'wallet' },
+    { id: 'profile', label: 'Profile', icon: User, screen: 'profile' },
   ];
 
-  const handleNavigation = (path) => {
+  const handleNavigation = (screen) => {
     setShowMobileMenu(false);
-    // Handle navigation logic here
-    window.location.hash = path;
+    if (navigate) {
+      navigate(screen);
+    }
   };
 
   return (
@@ -89,7 +90,7 @@ const Layout = ({ children, title, showBack = false, onBack, user }) => {
               {navigation.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => handleNavigation(item.path)}
+                  onClick={() => handleNavigation(item.screen)}
                   className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors text-left"
                 >
                   <item.icon size={20} className="text-gray-400" />
@@ -112,11 +113,13 @@ const Layout = ({ children, title, showBack = false, onBack, user }) => {
           {navigation.map((item) => (
             <button
               key={item.id}
-              onClick={() => handleNavigation(item.path)}
-              className="flex-1 flex flex-col items-center gap-1 p-3 hover:bg-white/5 transition-colors"
+              onClick={() => handleNavigation(item.screen)}
+              className={`flex-1 flex flex-col items-center gap-1 p-3 hover:bg-white/5 transition-colors ${
+                currentScreen === item.screen ? 'text-amber-400' : 'text-gray-400'
+              }`}
             >
-              <item.icon size={20} className="text-gray-400" />
-              <span className="text-xs text-gray-400">{item.label}</span>
+              <item.icon size={20} />
+              <span className="text-xs">{item.label}</span>
             </button>
           ))}
         </div>

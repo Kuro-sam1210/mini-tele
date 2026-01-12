@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Globe, Bell, Shield, MessageCircle, ChevronRight, Crown, Trophy, Target, X, Check } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import Layout from '../components/Layout';
 
 const Profile = ({ user, navigate }) => {
   const tg = window.Telegram?.WebApp;
@@ -33,19 +34,17 @@ const Profile = ({ user, navigate }) => {
   ];
 
   return (
-    <div className="page">
-      {/* Header */}
-      <div className="header-bar">
-        <div className="w-5" />
-        <span className="font-bold text-white">Profile</span>
-        <div className="balance-chip">
-          <div className="coin-icon">$</div>
-          <span className="text-[var(--gold)]">{user?.balance?.toLocaleString() || '2,368.50'}</span>
-        </div>
-      </div>
-
-      {/* Profile Card */}
-      <div className="p-4">
+    <Layout 
+      title="Profile" 
+      user={user} 
+      showBack={true} 
+      onBack={() => navigate('home')}
+      navigate={navigate}
+      currentScreen="profile"
+    >
+      <div className="page space-y-6">
+        {/* Profile Card */}
+        <div className="p-4">
         <div className="card p-4">
           <div className="flex items-center gap-4 mb-4">
             <img 
@@ -155,7 +154,8 @@ const Profile = ({ user, navigate }) => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </Layout>
   );
 };
 

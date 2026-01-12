@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, History, Gift, CreditCard, Bitcoin, Building2 } from 'lucide-react';
+import Layout from '../components/Layout';
 
 const Wallet = ({ user, updateBalance, navigate }) => {
   const tg = window.Telegram?.WebApp;
@@ -165,50 +166,43 @@ const Wallet = ({ user, updateBalance, navigate }) => {
   }
 
   return (
-    <div className="page">
-      {/* Header */}
-      <div className="header-bar">
-        <button 
-          onClick={() => navigate('home')}
-          className="w-8 h-8 rounded-full bg-[#0088cc] flex items-center justify-center"
-        >
-          <span className="text-white text-sm">✈</span>
-        </button>
-        <span className="font-bold text-white">My Wallet</span>
-        <div className="balance-chip">
-          <div className="coin-icon">$</div>
-          <span className="text-[var(--gold)]">{user?.balance?.toLocaleString() || '2,368.50'}</span>
-        </div>
-      </div>
-
-      {/* Balance Card */}
-      <div className="p-4">
-        <div className="wallet-card">
-          <p className="wallet-balance-label">USDT Balance:</p>
-          <p className="wallet-balance">{user?.balance?.toLocaleString() || '2,368.50'}</p>
-          
-          <div className="flex gap-3 mt-6">
-            <button 
-              onClick={() => {
-                tg?.HapticFeedback?.impactOccurred('light');
-                setView('deposit');
-              }}
-              className="btn-primary flex-1"
-            >
-              Deposit
-            </button>
-            <button 
-              onClick={() => {
-                tg?.HapticFeedback?.impactOccurred('light');
-                setView('withdraw');
-              }}
-              className="btn-secondary flex-1"
-            >
-              Withdraw
-            </button>
+    <Layout 
+      title="My Wallet" 
+      user={user} 
+      showBack={true} 
+      onBack={() => navigate('home')}
+      navigate={navigate}
+      currentScreen="wallet"
+    >
+      <div className="page space-y-6">
+        {/* Balance Card */}
+        <div className="p-4">
+          <div className="wallet-card">
+            <p className="wallet-balance-label">USDT Balance:</p>
+            <p className="wallet-balance">{user?.balance?.toLocaleString() || '2,368.50'}</p>
+            
+            <div className="flex gap-3 mt-6">
+              <button 
+                onClick={() => {
+                  tg?.HapticFeedback?.impactOccurred('light');
+                  setView('deposit');
+                }}
+                className="btn-primary flex-1"
+              >
+                Deposit
+              </button>
+              <button 
+                onClick={() => {
+                  tg?.HapticFeedback?.impactOccurred('light');
+                  setView('withdraw');
+                }}
+                className="btn-secondary flex-1"
+              >
+                Withdraw
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
       {/* Menu Items */}
       <div className="px-4">
@@ -253,7 +247,8 @@ const Wallet = ({ user, updateBalance, navigate }) => {
           ))}
         </div>
       </div>
-    </div>
+      </div>
+    </Layout>
   );
 };
 

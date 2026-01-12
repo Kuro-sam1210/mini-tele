@@ -88,6 +88,8 @@ const Game = ({ user, updateBalance, navigate, gameData }) => {
       user={user} 
       showBack={true} 
       onBack={() => navigate('home')}
+      navigate={navigate}
+      currentScreen="game"
     >
       <div className="page space-y-6">
         {showConfetti && <Confetti onComplete={() => setShowConfetti(false)} />}

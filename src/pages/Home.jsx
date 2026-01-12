@@ -98,7 +98,7 @@ const Home = ({ user, navigate }) => {
   );
 
   return (
-    <Layout title="Casino" user={user}>
+    <Layout title="Casino" user={user} navigate={navigate} currentScreen="home">
       <div className="page p-4 space-y-6">
         <div className="card">
           <div className="flex items-center justify-between mb-4">
