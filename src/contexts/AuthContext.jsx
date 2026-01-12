@@ -86,7 +86,10 @@ export const AuthProvider = ({ children }) => {
         if (currentUser) {
           // Remove balance from user object - we'll fetch it from wallet API
           const { balance, ...userWithoutBalance } = currentUser;
-          setUser(userWithoutBalance);
+          
+          // Ensure user has a balance property (default to 0)
+          const userWithBalance = { ...userWithoutBalance, balance: 0 };
+          setUser(userWithBalance);
           setIsAuthenticated(true);
           console.log('✅ User authenticated from existing token');
           
@@ -117,16 +120,24 @@ export const AuthProvider = ({ children }) => {
     try {
       // Get Telegram WebApp initData
       const tg = window.Telegram?.WebApp;
+      console.log('🔍 Telegram WebApp object:', tg);
+      console.log('🔍 Telegram initData available:', !!tg?.initData);
+      console.log('🔍 Telegram initData length:', tg?.initData?.length);
+      
       if (!tg || !tg.initData) {
         throw new Error('Telegram WebApp not available or no initData');
       }
 
+      console.log('📡 Attempting Telegram login with initData...');
       const result = await authApi.login(tg.initData);
       
       if (result && result.user && result.access_token) {
         // Remove balance from user object - we'll fetch it from wallet API
         const { balance, ...userWithoutBalance } = result.user;
-        setUser(userWithoutBalance);
+        
+        // Ensure user has a balance property (default to 0)
+        const userWithBalance = { ...userWithoutBalance, balance: 0 };
+        setUser(userWithBalance);
         setIsAuthenticated(true);
         
         // Store JWT token in localStorage
@@ -137,7 +148,7 @@ export const AuthProvider = ({ children }) => {
         // Fetch real-time balance from wallet API
         await fetchBalance();
         
-        return { success: true, user: userWithoutBalance };
+        return { success: true, user: userWithBalance };
       } else {
         const errorMsg = result?.message || 'Telegram login failed';
         setError(errorMsg);
@@ -145,6 +156,7 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (err) {
       const errorMsg = err?.message || 'Telegram login failed';
+      console.error('❌ Telegram login error:', err);
       setError(errorMsg);
       return { success: false, error: errorMsg };
     } finally {
@@ -163,7 +175,10 @@ export const AuthProvider = ({ children }) => {
       if (result && result.user && result.access_token) {
         // Remove balance from user object - we'll fetch it from wallet API
         const { balance, ...userWithoutBalance } = result.user;
-        setUser(userWithoutBalance);
+        
+        // Ensure user has a balance property (default to 0)
+        const userWithBalance = { ...userWithoutBalance, balance: 0 };
+        setUser(userWithBalance);
         setIsAuthenticated(true);
         
         // Store JWT token in localStorage
@@ -174,7 +189,7 @@ export const AuthProvider = ({ children }) => {
         // Fetch real-time balance from wallet API
         await fetchBalance();
         
-        return { success: true, user: userWithoutBalance };
+        return { success: true, user: userWithBalance };
       } else {
         const errorMsg = result?.message || 'Test login failed';
         setError(errorMsg);

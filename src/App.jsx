@@ -30,6 +30,7 @@ function AppContent() {
   const {
     user,
     isAuthenticated,
+    loginWithTelegram,
     loginWithDemo
   } = useAuth();
 
@@ -48,6 +49,15 @@ function AppContent() {
         tg.ready();
         tg.expand();
         
+        // Debug Telegram WebApp data
+        console.log('🔍 Telegram WebApp Debug Info:');
+        console.log('- WebApp object:', tg);
+        console.log('- initData:', tg.initData);
+        console.log('- initDataUnsafe:', tg.initDataUnsafe);
+        console.log('- user:', tg.initDataUnsafe?.user);
+        console.log('- platform:', tg.platform);
+        console.log('- version:', tg.version);
+        
         // Set Golden Age Casino theme colors (only if supported)
         if (tg.setHeaderColor) {
           tg.setHeaderColor('#000000');
@@ -59,15 +69,39 @@ function AppContent() {
         // Get user from Telegram or use API user
         if (tg.initDataUnsafe?.user && !user) {
           const tgUser = tg.initDataUnsafe.user;
+          console.log('🔍 Telegram user detected:', tgUser);
+          console.log('🔍 Telegram initData:', tg.initData);
           
-          // Try to login with demo credentials
-          const loginResult = await loginWithDemo();
-          if (loginResult.success) {
-            toast.success(`Welcome to Golden Age Casino, ${tgUser.first_name}!`);
+          // Try to login with Telegram credentials first
+          let loginResult = await loginWithTelegram();
+          
+          // If Telegram login fails, fallback to demo
+          if (!loginResult.success) {
+            console.warn('Telegram login failed, trying demo login:', loginResult.error);
+            loginResult = await loginWithDemo();
           }
           
-          // Auto-navigate to home if user is logged in via Telegram
+          if (loginResult.success) {
+            toast.success(`Welcome to Golden Age Casino, ${tgUser.first_name}!`);
+            // Auto-navigate to home if user is logged in via Telegram
+            setScreen('home');
+          } else {
+            toast.error('Login failed. Please try again.');
+            // Stay on landing page if login fails
+          }
+        } else if (tg.initDataUnsafe?.user && user) {
+          // User already logged in, just navigate to home
+          console.log('🔍 User already authenticated, navigating to home');
           setScreen('home');
+        } else {
+          // No Telegram user detected, try demo login for testing
+          console.log('🔍 No Telegram user detected, trying demo login');
+          const loginResult = await loginWithDemo();
+          if (loginResult.success) {
+            toast.success('Welcome to Golden Age Casino!');
+            setScreen('home');
+          }
+        }
         }
       }
       
@@ -78,7 +112,7 @@ function AppContent() {
     if (isLoading) {
       initializeApp();
     }
-  }, [isLoading, isConnected, user, loginWithDemo, toast, tg]);
+  }, [isLoading, isConnected, user, loginWithTelegram, loginWithDemo, toast, tg]);
 
   // Handle Telegram back button
   useEffect(() => {
