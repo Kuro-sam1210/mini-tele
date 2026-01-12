@@ -102,7 +102,6 @@ function AppContent() {
             setScreen('home');
           }
         }
-        }
       }
       
       setIsLoading(false);
