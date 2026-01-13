@@ -13,18 +13,18 @@ const GameCard = ({
   const getVariantClasses = () => {
     switch (variant) {
       case 'featured':
-        return 'card-featured';
+        return 'game-card-featured';
       case 'compact':
         return 'game-card-compact';
       default:
-        return 'game-card';
+        return 'game-card-clean';
     }
   };
 
   const getStatusBadge = () => {
     if (game.isHot) {
       return (
-        <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-red-600 to-red-500 rounded-full text-xs font-medium">
+        <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-red-600 to-red-500 rounded-full text-xs font-medium z-10">
           <Flame size={12} />
           <span>HOT</span>
         </div>
@@ -33,7 +33,7 @@ const GameCard = ({
     
     if (game.isNew) {
       return (
-        <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-full text-xs font-medium">
+        <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-full text-xs font-medium z-10">
           <Star size={12} />
           <span>NEW</span>
         </div>
@@ -42,7 +42,7 @@ const GameCard = ({
     
     if (game.isLive) {
       return (
-        <div className="absolute top-2 right-2 live-indicator">
+        <div className="absolute top-2 right-2 live-indicator z-10">
           <div className="live-dot"></div>
           <span>LIVE</span>
         </div>
@@ -50,32 +50,6 @@ const GameCard = ({
     }
     
     return null;
-  };
-
-  const getGameStats = () => {
-    if (!showStats || !game.stats) return null;
-    
-    return (
-      <div className="flex items-center justify-between text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">
-        {game.stats.players && (
-          <div className="flex items-center gap-1">
-            <Users size={12} />
-            <span>{game.stats.players}</span>
-          </div>
-        )}
-        {game.stats.lastWin && (
-          <div className="flex items-center gap-1">
-            <span className="text-emerald-400">💰 ${game.stats.lastWin}</span>
-          </div>
-        )}
-        {game.stats.avgTime && (
-          <div className="flex items-center gap-1">
-            <Clock size={12} />
-            <span>{game.stats.avgTime}</span>
-          </div>
-        )}
-      </div>
-    );
   };
 
   if (variant === 'compact') {
@@ -86,8 +60,23 @@ const GameCard = ({
         className={`${getVariantClasses()} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <div className="flex items-center gap-3 p-3">
-          <div className="game-card-image w-12 h-12 rounded-lg flex-shrink-0">
-            {game.icon && <span className="text-lg">{game.icon}</span>}
+          <div className="game-card-image w-12 h-12 rounded-lg flex-shrink-0 overflow-hidden relative">
+            {game.image ? (
+              <img
+                src={game.image}
+                alt={game.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div 
+              className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 ${game.image ? 'hidden' : 'flex'}`}
+            >
+              <span className="text-lg">{game.icon}</span>
+            </div>
           </div>
           <div className="flex-1 text-left">
             <div className="game-card-title text-sm">{game.name}</div>
@@ -99,71 +88,53 @@ const GameCard = ({
     );
   }
 
+  // Clean image-only design
   return (
-    <div className={`${getVariantClasses()} ${disabled ? 'opacity-50' : ''}`}>
-      <div className="game-card-image relative">
+    <button
+      onClick={() => !disabled && onClick?.(game)}
+      disabled={disabled}
+      className={`${getVariantClasses()} ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'} transition-all duration-300 relative overflow-hidden rounded-2xl`}
+    >
+      <div className="game-card-image-clean relative w-full">
         {game.image ? (
           <>
             <img
               src={game.image}
               alt={game.name}
-              className={`w-full h-full object-cover transition-opacity duration-300 ${
+              className={`w-full h-full object-cover transition-all duration-300 ${
                 imageLoaded ? 'opacity-100' : 'opacity-0'
               }`}
-              onLoad={() => setImageLoaded(true)}
+              onLoad={() => {
+                console.log(`✅ Successfully loaded image for ${game.name}`);
+                setImageLoaded(true);
+              }}
+              onError={(e) => {
+                console.log(`❌ Failed to load image for ${game.name}:`, game.image);
+                e.target.style.display = 'none';
+                setImageLoaded(true);
+              }}
             />
             {!imageLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
                 <div className="loading-spinner"></div>
+              </div>
+            )}
+            {/* Fallback to icon if image fails to load */}
+            {imageLoaded && !game.image && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+                <span className="text-4xl">{game.icon || '🎮'}</span>
               </div>
             )}
           </>
         ) : (
-          <div className="flex items-center justify-content-center">
+          <div className="flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 h-full aspect-[4/3]">
             <span className="text-4xl">{game.icon || '🎮'}</span>
           </div>
         )}
         
         {getStatusBadge()}
-        
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300">
-          <div className="absolute bottom-2 left-2 right-2">
-            <button
-              onClick={() => !disabled && onClick?.(game)}
-              disabled={disabled}
-              className="btn btn-primary btn-sm w-full"
-            >
-              <Play size={14} />
-              Play Now
-            </button>
-          </div>
-        </div>
       </div>
-      
-      <div className="game-card-content">
-        <h3 className="game-card-title">{game.name}</h3>
-        {game.subtitle && (
-          <p className="game-card-subtitle">{game.subtitle}</p>
-        )}
-        {game.provider && (
-          <div className="text-xs text-gray-500 mb-2">by {game.provider}</div>
-        )}
-        
-        {getGameStats()}
-        
-        {variant !== 'featured' && (
-          <button
-            onClick={() => !disabled && onClick?.(game)}
-            disabled={disabled}
-            className="btn btn-secondary btn-sm w-full mt-3"
-          >
-            <Play size={14} />
-            {disabled ? 'Coming Soon' : 'Play'}
-          </button>
-        )}
-      </div>
-    </div>
+    </button>
   );
 };
 

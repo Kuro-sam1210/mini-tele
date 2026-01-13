@@ -24,6 +24,7 @@ const Game = ({ user, updateBalance, navigate, gameData }) => {
       name: 'Golden Age Slots', 
       icon: '🎰', 
       subtitle: 'Premium Vegas Experience',
+      image: '/games/golden age slots.png',
       isHot: true,
       component: SlotMachine
     },
@@ -32,6 +33,7 @@ const Game = ({ user, updateBalance, navigate, gameData }) => {
       name: 'Emerald Roulette', 
       icon: '🎯', 
       subtitle: 'European Casino Style',
+      image: '/games/emerald roulette.png',
       isLive: true,
       component: Roulette
     },
@@ -40,8 +42,17 @@ const Game = ({ user, updateBalance, navigate, gameData }) => {
       name: 'Royal Blackjack', 
       icon: '🃏', 
       subtitle: 'Classic Card Game',
+      image: '/games/royal blackjack.png',
       isNew: true,
       component: CardFlip
+    },
+    { 
+      id: 'poker', 
+      name: 'Diamond Poker', 
+      icon: '💎', 
+      subtitle: 'High Stakes Poker',
+      image: '/games/diamond poker.png',
+      component: CardFlip // Using CardFlip as placeholder for poker
     },
   ];
 

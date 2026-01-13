@@ -5,6 +5,7 @@ import { GameGrid } from '../components/GameCard';
 import SpinWheel from '../components/SpinWheel';
 import ScratchCard from '../components/ScratchCard';
 import Confetti from '../components/Confetti';
+import Carousel from '../components/Carousel';
 
 const Home = ({ user, navigate }) => {
   const [showWheel, setShowWheel] = useState(false);
@@ -19,6 +20,7 @@ const Home = ({ user, navigate }) => {
       name: 'Golden Age Slots', 
       subtitle: 'Premium Vegas Experience', 
       icon: '🎰',
+      image: '/games/golden age slots.png',
       isHot: true,
       stats: { players: '1.2k', lastWin: '15,000' }
     },
@@ -27,6 +29,7 @@ const Home = ({ user, navigate }) => {
       name: 'Emerald Roulette', 
       subtitle: 'European Casino Style', 
       icon: '🎯',
+      image: '/games/emerald roulette.png',
       isLive: true,
       stats: { players: '856', avgTime: '3m' }
     },
@@ -35,6 +38,7 @@ const Home = ({ user, navigate }) => {
       name: 'Royal Blackjack', 
       subtitle: 'Classic Card Game', 
       icon: '🃏',
+      image: '/games/royal blackjack.png',
       isNew: true,
       stats: { players: '432', lastWin: '8,500' }
     },
@@ -43,6 +47,7 @@ const Home = ({ user, navigate }) => {
       name: 'Diamond Poker', 
       subtitle: 'High Stakes Poker', 
       icon: '💎',
+      image: '/games/diamond poker.png',
       stats: { players: '234', lastWin: '25,000' }
     }
   ];
@@ -97,9 +102,38 @@ const Home = ({ user, navigate }) => {
     game.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleSlideClick = (slideIndex) => {
+    const tg = window.Telegram?.WebApp;
+    tg?.HapticFeedback?.impactOccurred('medium');
+    
+    // Handle different slide actions
+    switch (slideIndex) {
+      case 0: // VIP Program
+        // Navigate to VIP section or show VIP modal
+        console.log('VIP Program clicked');
+        break;
+      case 1: // Daily Bet
+        navigate('game', { gameType: 'daily-special' });
+        break;
+      case 2: // Daily Cashback
+        navigate('wallet');
+        break;
+      case 3: // First Deposit Bonus
+        navigate('wallet');
+        break;
+      case 4: // Weekend Special
+        // Show weekend special offers
+        console.log('Weekend Special clicked');
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <Layout title="Casino" user={user} navigate={navigate} currentScreen="home">
       <div className="page p-4 space-y-6">
+        <Carousel onSlideClick={handleSlideClick} />
         <div className="card">
           <div className="flex items-center justify-between mb-4">
             <div>
