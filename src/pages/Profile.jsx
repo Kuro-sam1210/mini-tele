@@ -59,13 +59,18 @@ const Profile = ({ user, navigate, onLogout }) => {
         <div className="card p-4">
           <div className="flex items-center gap-4 mb-4">
             <img 
-              src={user?.avatar} 
+              src={user?.avatar || user?.photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'player'}`} 
               alt="Profile"
-              className="w-16 h-16 rounded-2xl bg-[var(--bg-elevated)]"
+              className="w-16 h-16 rounded-2xl bg-[var(--bg-elevated)] object-cover"
+              onError={(e) => {
+                e.target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'player'}`;
+              }}
             />
             <div>
-              <h2 className="text-xl font-bold text-white">{user?.name || 'Player'}</h2>
-              <p className="text-sm text-[var(--text-muted)]">@{user?.username}</p>
+              <h2 className="text-xl font-bold text-white">
+                {user?.name || `${user?.first_name || 'Player'} ${user?.last_name || ''}`.trim()}
+              </h2>
+              <p className="text-sm text-[var(--text-muted)]">@{user?.username || 'player'}</p>
             </div>
           </div>
 

@@ -50,17 +50,24 @@ export async function login(initData) {
 function createMockTelegramUser(tg) {
   const tgUser = tg?.initDataUnsafe?.user;
   
+  const fullName = tgUser?.first_name ? `${tgUser.first_name} ${tgUser.last_name || ''}`.trim() : 'Player';
+  
   const mockUser = {
     id: tgUser?.id || 123456789,
-    first_name: tgUser?.first_name || 'Telegram',
-    last_name: tgUser?.last_name || 'User',
-    username: tgUser?.username || 'telegramuser',
-    photo_url: tgUser?.photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${tgUser?.id || 'telegram'}`,
+    first_name: tgUser?.first_name || 'Player',
+    last_name: tgUser?.last_name || '',
+    name: fullName, // For profile display
+    username: tgUser?.username || 'player',
+    photo_url: tgUser?.photo_url,
+    avatar: tgUser?.photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${tgUser?.username || tgUser?.id || 'telegram'}`,
     balance: 2500,
     isTelegramUser: true,
     level: 'Gold',
     joinDate: new Date().toISOString().split('T')[0]
   };
+  
+  console.log('📱 Created Telegram user:', mockUser);
+  console.log('📱 Telegram user data available:', tgUser);
   
   const mockToken = 'telegram_token_' + Date.now();
   

@@ -81,10 +81,12 @@ function App() {
         } else if (tg.initDataUnsafe?.user) {
           // Telegram environment but no initData - use initDataUnsafe for mock
           console.log('📱 Telegram environment detected, using mock auth...');
+          console.log('📱 Available Telegram user data:', tg.initDataUnsafe.user);
           try {
             const response = await login('telegram_mock');
             
             if (response.user) {
+              console.log('📱 Final user object:', response.user);
               setTimeout(() => {
                 toast.success(`Welcome to Golden Age Cash, ${response.user.first_name || 'Player'}!`);
               }, 1000);
