@@ -3,7 +3,7 @@ import { Globe, Bell, Shield, MessageCircle, ChevronRight, Crown, Trophy, Target
 import { useLanguage } from '../contexts/LanguageContext';
 import Layout from '../components/Layout';
 
-const Profile = ({ user, navigate }) => {
+const Profile = ({ user, navigate, onLogout }) => {
   const tg = window.Telegram?.WebApp;
   const { t, changeLanguage, currentLanguage, languages } = useLanguage();
   const [showLanguageModal, setShowLanguageModal] = useState(false);
@@ -31,6 +31,17 @@ const Profile = ({ user, navigate }) => {
     { icon: Bell, label: 'Notifications', value: 'On' },
     { icon: Shield, label: 'Security', value: '2FA' },
     { icon: MessageCircle, label: 'Support', value: '24/7' },
+    { 
+      icon: () => <span className="text-red-400">🚪</span>, 
+      label: 'Logout', 
+      value: '',
+      action: () => {
+        if (onLogout) {
+          onLogout();
+          navigate('landing');
+        }
+      }
+    },
   ];
 
   return (
@@ -103,7 +114,11 @@ const Profile = ({ user, navigate }) => {
               }}
             >
               <div className="menu-icon">
-                <item.icon className="w-5 h-5 text-[var(--text-secondary)]" />
+                {typeof item.icon === 'function' ? (
+                  <item.icon />
+                ) : (
+                  <item.icon className="w-5 h-5 text-gray-400" />
+                )}
               </div>
               <span className="flex-1 text-left font-semibold text-white">{item.label}</span>
               {item.value && (

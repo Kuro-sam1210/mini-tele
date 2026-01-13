@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ToastContainer, useToast } from './components/Toast';
+import { useAuth } from './hooks/useAuth';
+import { useWallet } from './hooks/useWallet';
 import LandingPage from './pages/Landing';
 import Home from './pages/Home';
 import Game from './pages/Game';
@@ -11,14 +13,37 @@ import './App.css';
 function App() {
   const [screen, setScreen] = useState('landing');
   const [screenData, setScreenData] = useState(null);
-  const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasInitialized, setHasInitialized] = useState(false);
   const toast = useToast();
   const tg = window.Telegram?.WebApp;
+
+  // Authentication hook
+  const { 
+    user, 
+    isAuthenticated, 
+    login, 
+    logout, 
+    updateUserBalance,
+    error: authError 
+  } = useAuth();
+
+  // Wallet hook
+  const { 
+    balance, 
+    fetchBalance, 
+    createDeposit, 
+    createWithdrawal, 
+    fetchTransactions,
+    refreshWallet 
+  } = useWallet(updateUserBalance);
 
   // Initialize Telegram WebApp
   useEffect(() => {
     const initializeApp = async () => {
+      if (hasInitialized) return;
+      setHasInitialized(true);
+      
       if (tg) {
         tg.ready();
         tg.expand();
@@ -27,51 +52,73 @@ function App() {
         tg.setHeaderColor('#000000');
         tg.setBackgroundColor('#000000');
         
-        // Get user from Telegram
-        if (tg.initDataUnsafe?.user) {
-          const tgUser = tg.initDataUnsafe.user;
-          setUser({
-            id: tgUser.id,
-            name: `${tgUser.first_name} ${tgUser.last_name || ''}`.trim(),
-            username: tgUser.username || `user${tgUser.id}`,
-            avatar: tgUser.photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${tgUser.id}`,
-            balance: 2368.50,
-            level: 'Gold',
-            joinDate: new Date().toISOString().split('T')[0],
-          });
-          
-          // Welcome message
-          setTimeout(() => {
-            toast.success(`Welcome to Golden Age Cash, ${tgUser.first_name}!`);
-          }, 1000);
-          
-          // Auto-navigate to home if user is logged in via Telegram
-          setScreen('home');
+        // Try to authenticate with Telegram
+        if (tg.initData && tg.initData.length > 0) {
+          try {
+            console.log('🔐 Authenticating with Telegram...');
+            const response = await login(tg.initData);
+            
+            if (response.user) {
+              // Welcome message
+              setTimeout(() => {
+                toast.success(`Welcome to Golden Age Cash, ${response.user.first_name || 'Player'}!`);
+              }, 1000);
+              
+              // Auto-navigate to home if user is logged in
+              setScreen('home');
+              
+              // Fetch wallet data
+              await refreshWallet();
+            }
+          } catch (error) {
+            console.error('❌ Telegram authentication failed:', error);
+            toast.error('Authentication failed. Please try again.');
+            // Fall back to web mode
+            await initWebMode();
+          }
+        } else {
+          // No Telegram data, but still in Telegram environment - fall back to web mode
+          console.log('🌐 No Telegram initData, using web mode');
+          await initWebMode();
         }
-      }
-      
-      // Mock user for development outside Telegram
-      if (!tg?.initDataUnsafe?.user) {
-        setUser({
-          id: 123456789,
-          name: 'Golden Player',
-          username: 'player',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=player',
-          balance: 2368.50,
-          level: 'Gold',
-          joinDate: '2024-01-01',
-        });
-        
-        setTimeout(() => {
-          toast.info('Welcome to Golden Age Cash! Demo mode active.');
-        }, 1000);
+      } else {
+        // Not in Telegram environment - web mode
+        console.log('🌐 Web mode - not in Telegram environment');
+        await initWebMode();
       }
       
       setIsLoading(false);
     };
 
+    const initWebMode = async () => {
+      try {
+        // Try to authenticate with mock data for web mode
+        const response = await login('web_mode_user');
+        
+        if (response.user) {
+          setTimeout(() => {
+            toast.success(`Welcome to Golden Age Cash, ${response.user.first_name || 'Player'}!`);
+          }, 1000);
+          
+          setScreen('home');
+          await refreshWallet();
+        }
+      } catch (error) {
+        console.error('❌ Web mode authentication failed:', error);
+        toast.info('Welcome to Golden Age Cash! Click to get started.');
+        // Stay on landing page for manual login
+      }
+    };
+
     initializeApp();
-  }, []);
+  }, []); // Empty dependency array to run only once
+
+  // Handle authentication errors
+  useEffect(() => {
+    if (authError) {
+      toast.error(authError);
+    }
+  }, [authError, toast]);
 
   // Handle Telegram back button
   useEffect(() => {
@@ -105,15 +152,25 @@ function App() {
     setScreenData(data);
   };
 
-  const updateBalance = (amount) => {
-    const newBalance = user.balance + amount;
-    setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
-    
-    // Show toast notifications for balance changes
-    if (amount > 0) {
-      toast.success(`+$${amount.toLocaleString()} added to your balance!`);
-    } else if (amount < 0) {
-      toast.warning(`-$${Math.abs(amount).toLocaleString()} deducted from balance`);
+  const updateBalance = async (amount) => {
+    try {
+      // For game wins/losses, we'll need to implement game API endpoints
+      // For now, just update locally and show toast
+      const newBalance = (user?.balance || balance) + amount;
+      updateUserBalance(newBalance);
+      
+      // Show toast notifications for balance changes
+      if (amount > 0) {
+        toast.success(`+${amount.toLocaleString()} USDT added to your balance!`);
+      } else if (amount < 0) {
+        toast.warning(`-${Math.abs(amount).toLocaleString()} USDT deducted from balance`);
+      }
+      
+      // In a real implementation, you'd call an API to update the balance on the server
+      // await gameApi.updateBalance(amount);
+    } catch (error) {
+      console.error('❌ Balance update error:', error);
+      toast.error('Failed to update balance');
     }
   };
 
@@ -139,32 +196,50 @@ function App() {
     );
   }
 
+  // Show landing page if not authenticated
+  if (!isAuthenticated && screen !== 'landing') {
+    setScreen('landing');
+  }
+
   return (
     <LanguageProvider>
       <div className="app">
         {screen === 'landing' && (
           <LandingPage navigate={navigate} />
         )}
-        {screen === 'home' && (
-          <Home user={user} navigate={navigate} />
+        {screen === 'home' && isAuthenticated && (
+          <Home 
+            user={{ ...user, balance: user?.balance || balance }} 
+            navigate={navigate} 
+          />
         )}
-        {screen === 'game' && (
+        {screen === 'game' && isAuthenticated && (
           <Game 
-            user={user} 
+            user={{ ...user, balance: user?.balance || balance }}
             gameData={screenData}
             updateBalance={updateBalance}
             navigate={navigate}
           />
         )}
-        {screen === 'wallet' && (
+        {screen === 'wallet' && isAuthenticated && (
           <Wallet 
-            user={user} 
+            user={{ ...user, balance: user?.balance || balance }}
             updateBalance={updateBalance}
             navigate={navigate}
+            walletApi={{
+              createDeposit,
+              createWithdrawal,
+              fetchTransactions,
+              refreshWallet
+            }}
           />
         )}
-        {screen === 'profile' && (
-          <Profile user={user} navigate={navigate} />
+        {screen === 'profile' && isAuthenticated && (
+          <Profile 
+            user={{ ...user, balance: user?.balance || balance }} 
+            navigate={navigate}
+            onLogout={logout}
+          />
         )}
         
         {/* Toast Notifications */}

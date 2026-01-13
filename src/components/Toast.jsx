@@ -103,6 +103,16 @@ export const useToast = () => {
   const [toasts, setToasts] = useState([]);
 
   const addToast = (message, type = 'info', options = {}) => {
+    // Check for duplicate messages
+    const isDuplicate = toasts.some(toast => 
+      toast.message === message && toast.type === type
+    );
+    
+    if (isDuplicate) {
+      console.log('🚫 Duplicate toast prevented:', message);
+      return null;
+    }
+
     const id = Date.now() + Math.random();
     const toast = {
       id,
