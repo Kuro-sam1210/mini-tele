@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getCookie } from './cookies';
+import { API_BASE_URL, REQUEST_TIMEOUT, STORAGE_KEYS } from './config';
 
 export const backendUrl = () => {
   if (typeof window !== 'undefined') {
