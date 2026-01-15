@@ -1,8 +1,14 @@
 import axios from 'axios';
+import { getCookie } from './cookies';
 
 export const backendUrl = () => {
-  // Golden Age USDT Wallet API - always use the provided server
-  return "https://server-kl7c.onrender.com";
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:8000';
+    }
+  }
+  return 'https://server-kl7c.onrender.com';
 };
 
 const api = axios.create({
@@ -15,8 +21,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    // Get JWT token from localStorage (not cookies for this API)
-    const token = localStorage.getItem('access_token');
+    const token = getCookie('access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

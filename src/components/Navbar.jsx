@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = ({ onNavigate }) => {
   const { currentLanguage, changeLanguage, languages, t } = useLanguage();
-  const { isAuthenticated, loginWithDemo, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -59,6 +59,38 @@ const Navbar = ({ onNavigate }) => {
 
         {/* Right Actions */}
         <div className="flex items-center gap-3">
+          {isAuthenticated && user?.balance !== undefined && (
+            <div className="relative flex items-center gap-3 px-3 py-1.5 rounded-full bg-emerald-600/90 text-white text-xs sm:text-sm font-semibold overflow-hidden">
+              <span className="absolute inset-0 flex items-center justify-start opacity-30">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="28"
+                  height="28"
+                  viewBox="0 0 48 48"
+                  className="ml-[-4px]"
+                >
+                  <polygon
+                    fill="#4db6ac"
+                    points="24,44 2,22.5 10,5 38,5 46,22.5"
+                  ></polygon>
+                  <path
+                    fill="#fff"
+                    d="M38,22c0-1.436-4.711-2.635-11-2.929V16h8v-6H13v6h8v3.071C14.711,19.365,10,20.564,10,22	s4.711,2.635,11,2.929V36h6V24.929C33.289,24.635,38,23.436,38,22z M24,24c-6.627,0-12-1.007-12-2.25c0-1.048,3.827-1.926,9-2.176	v3.346c0.96,0.06,1.96,0.08,3,0.08s2.04-0.02,3-0.08v-3.346c5.173,0.25,9,1.128,9,2.176C36,22.993,30.627,24,24,24z"
+                  ></path>
+                </svg>
+              </span>
+              <span className="relative z-10 text-sm font-bold">
+                {user.balance.toLocaleString()} USDT
+              </span>
+              <button
+                onClick={() => navigate('/wallet')}
+                className="relative z-10 px-3 py-0.5 rounded-full bg-emerald-400 text-black text-[11px] sm:text-xs font-bold hover:bg-emerald-300 transition-colors cursor-pointer"
+              >
+                Deposit
+              </button>
+            </div>
+          )}
+
           {/* Language Switcher */}
           <div className="relative">
             <button 
@@ -93,8 +125,7 @@ const Navbar = ({ onNavigate }) => {
             )}
           </div>
 
-          {/* Auth Buttons */}
-          {!isAuthenticated ? (
+          {!isAuthenticated && (
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setModal('sign-in')}
@@ -111,12 +142,6 @@ const Navbar = ({ onNavigate }) => {
                 <span>Sign Up</span>
               </button>
             </div>
-          ) : (
-             <div className="flex items-center gap-2">
-                 {/* If logged in, maybe show profile icon or logout? 
-                     User didn't explicitly ask for this, but good to have.
-                 */}
-             </div>
           )}
         </div>
       </div>

@@ -5,6 +5,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import authApi from '../api/auth';
+import { setCookie, getCookie } from '../api/cookies';
 
 const AuthContext = createContext();
 
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     
     try {
-      const token = localStorage.getItem('access_token');
+      const token = getCookie('access_token');
       
       if (token) {
         // Try to get current user with existing token
@@ -108,7 +109,7 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
         
         // Store JWT token in localStorage
-        localStorage.setItem('access_token', result.access_token);
+        setCookie('access_token', result.access_token);
         
         console.log('✅ User logged in with test data successfully');
         return { success: true, user: result.user };
@@ -158,12 +159,12 @@ export const AuthProvider = ({ children }) => {
         first_name,
         last_name
       });
-      console.log(result)
 
-      if (result && result.access_token && result.user) {
+
+     if (result && result.access_token && result.user) {
         setUser(result.user);
         setIsAuthenticated(true);
-        localStorage.setItem('access_token', result.access_token);
+        setCookie('access_token', result.access_token);
         return { success: true, user: result.user };
       }
 

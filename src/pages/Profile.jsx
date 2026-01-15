@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Globe, Bell, Shield, MessageCircle, ChevronRight, Crown, Trophy, Target, X, Check } from 'lucide-react';
+import { Globe, Bell, Shield, MessageCircle, ChevronRight, Crown, Trophy, Target, X, Check, LogOut } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 
 const Profile = () => {
   const tg = window.Telegram?.WebApp;
   const { t, changeLanguage, currentLanguage, languages } = useLanguage();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+
+  const fullName = `${user?.first_name || ''}${user?.last_name ? ` ${user.last_name}` : ''}`.trim();
+  const displayName = fullName || user?.username || user?.email || 'Player';
+  const secondaryIdentifier = user?.username
+    ? `@${user.username}`
+    : user?.email
+      ? user.email
+      : user?.telegram_id
+        ? `ID: ${user.telegram_id}`
+        : 'Guest';
 
   useEffect(() => {
     if (tg) {
@@ -17,9 +27,9 @@ const Profile = () => {
   }, [tg]);
 
   const stats = [
-    { icon: Target, label: 'Bets', value: '1,247' },
-    { icon: Trophy, label: 'Wins', value: '892' },
-    { icon: Crown, label: 'Best Win', value: '$4,800' },
+    { icon: Target, label: 'Bets', value: '0' },
+    { icon: Trophy, label: 'Wins', value: '0' },
+    { icon: Crown, label: 'Best Win', value: '$0' },
   ];
 
   const menuItems = [
@@ -32,6 +42,7 @@ const Profile = () => {
     { icon: Bell, label: 'Notifications', value: 'On' },
     { icon: Shield, label: 'Security', value: '2FA' },
     { icon: MessageCircle, label: 'Support', value: '24/7' },
+    { icon: LogOut, label: t('logout'), action: logout },
   ];
 
   return (
@@ -56,10 +67,10 @@ const Profile = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <h2 className="text-xl font-bold text-white truncate">
-                  {user?.name || 'Player'}
+                  {displayName}
                 </h2>
                 <p className="text-sm text-[var(--text-muted)] truncate">
-                  @{user?.username || 'guest'}
+                  {secondaryIdentifier}
                 </p>
                 <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-black/40 border border-emerald-500/40 px-3 py-1">
                   <Crown className="w-3.5 h-3.5 text-[var(--gold)]" />

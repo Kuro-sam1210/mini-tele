@@ -291,13 +291,13 @@ const Wallet = () => {
     <div className="page pb-24 p-4 space-y-6">
       <div className="header-bar">
         <span className="font-bold text-white text-lg">Wallet</span>
-        <button
+        {/* <button
           type="button"
           className="ml-auto flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-white transition-colors"
         >
           <Clock className="w-4 h-4" />
           <span>Transactions</span>
-        </button>
+        </button> */}
       </div>
 
       <div className="flex gap-2 bg-black/40 border border-white/10 rounded-2xl p-1">

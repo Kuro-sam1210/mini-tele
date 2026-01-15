@@ -100,8 +100,9 @@ function AppContent() {
 
 function App() {
   return (
-    <ApiProvider>
+ 
       <AuthProvider>
+           <ApiProvider>
         <LanguageProvider>
           <ToastProvider>
             <WalletProvider>
@@ -109,8 +110,8 @@ function App() {
             </WalletProvider>
           </ToastProvider>
         </LanguageProvider>
+         </ApiProvider>
       </AuthProvider>
-    </ApiProvider>
   );
 }
 
