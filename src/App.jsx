@@ -23,22 +23,8 @@ function AppContent() {
     loginWithDemo
   } = useAuth();
 
-  // Check if we're in Telegram and redirect to browser
+  // Initialize Telegram WebApp
   useEffect(() => {
-    const isInTelegram = tg && tg.initData && tg.initData.length > 0;
-    
-    if (isInTelegram) {
-      // Redirect to the same URL in an external browser
-      tg.openLink(window.location.href);
-      // Close the Telegram mini app after opening the browser
-      setTimeout(() => {
-        tg.close();
-      }, 100); // Small delay to ensure the link opens before closing
-      // Return early to prevent further initialization
-      return;
-    }
-    
-    // Initialize Telegram WebApp
     let initializationDone = false;
 
     const initializeApp = async () => {
@@ -79,7 +65,7 @@ function AppContent() {
     if (isLoading) {
       initializeApp();
     }
-  }, [isLoading]); // Only depend on isLoading since tg is global and other deps aren't needed for the redirect logic
+  }, [isLoading]);
 
   if (isLoading) {
     return (
