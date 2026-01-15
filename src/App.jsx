@@ -23,8 +23,18 @@ function AppContent() {
     loginWithDemo
   } = useAuth();
 
-  // Initialize Telegram WebApp
+  // Check if we're in Telegram and redirect to browser
   useEffect(() => {
+    const isInTelegram = tg && tg.initData && tg.initData.length > 0;
+    
+    if (isInTelegram) {
+      // Redirect to the same URL in an external browser
+      tg.openLink(window.location.href);
+      // Return early to prevent further initialization
+      return;
+    }
+    
+    // Initialize Telegram WebApp
     let initializationDone = false;
 
     const initializeApp = async () => {
