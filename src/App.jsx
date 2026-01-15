@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
-import { ApiProvider, useApi } from './contexts/ApiContext';
+import { ApiProvider } from './contexts/ApiContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WalletProvider } from './contexts/WalletContext';
 import { LayoutProvider } from './contexts/LayoutContext';
@@ -10,60 +10,39 @@ import router from './router';
 
 function AppContent() {
   const [isLoading, setIsLoading] = useState(true);
+  const initializedRef = useRef(false);
+
   const toast = useToast();
-  const tg = window.Telegram?.WebApp;
+  const { user, loginWithDemo } = useAuth();
 
-  // Use API and Auth contexts
-  const {
-    isConnected
-  } = useApi();
-
-  const {
-    user,
-    loginWithDemo
-  } = useAuth();
-
-  // Check if we're in Telegram and redirect to browser
   useEffect(() => {
-    const isInTelegram = tg && tg.initData && tg.initData.length > 0;
-    
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
+    const tg = window.Telegram?.WebApp;
+    const isInTelegram = !!tg?.initData;
+
     if (isInTelegram) {
-      // Redirect to the same URL in an external browser
       tg.openLink(window.location.href);
-      // Return early to prevent further initialization
       return;
     }
-    
-    // Initialize Telegram WebApp
-    let initializationDone = false;
 
-    const initializeApp = async () => {
-      if (initializationDone) return;
-      initializationDone = true;
-
-      // Clear any existing toasts first
+    const init = async () => {
       toast.clearAll();
 
       if (tg) {
         tg.ready();
         tg.expand();
 
-        // Set Golden Age Cash theme colors (only if supported)
-        if (tg.setHeaderColor) {
-          tg.setHeaderColor('#000000');
-        }
-        if (tg.setBackgroundColor) {
-          tg.setBackgroundColor('#000000');
-        }
+        tg.setHeaderColor?.('#000000');
+        tg.setBackgroundColor?.('#000000');
 
-        // Get user from Telegram or use API user
         if (tg.initDataUnsafe?.user && !user) {
-          const tgUser = tg.initDataUnsafe.user;
-
-          // Try to login with demo credentials
-          const loginResult = await loginWithDemo();
-          if (loginResult?.success) {
-            toast.success(`Welcome to Golden Age Club, ${tgUser.first_name}!`);
+          const result = await loginWithDemo();
+          if (result?.success) {
+            toast.success(
+              `Welcome to Golden Age Club, ${tg.initDataUnsafe.user.first_name}!`
+            );
           }
         }
       }
@@ -71,11 +50,8 @@ function AppContent() {
       setIsLoading(false);
     };
 
-    // Only initialize when contexts are ready
-    if (isLoading) {
-      initializeApp();
-    }
-  }, [isLoading, isConnected, user, loginWithDemo, toast, tg]);
+    init();
+  }, []);
 
   if (isLoading) {
     return (
@@ -110,9 +86,8 @@ function AppContent() {
 
 function App() {
   return (
- 
-      <AuthProvider>
-           <ApiProvider>
+    <AuthProvider>
+      <ApiProvider>
         <LanguageProvider>
           <ToastProvider>
             <WalletProvider>
@@ -120,8 +95,8 @@ function App() {
             </WalletProvider>
           </ToastProvider>
         </LanguageProvider>
-         </ApiProvider>
-      </AuthProvider>
+      </ApiProvider>
+    </AuthProvider>
   );
 }
 
