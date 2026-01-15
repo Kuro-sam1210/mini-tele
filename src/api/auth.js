@@ -12,6 +12,18 @@ export const login = async (initData) => {
   }
 };
 
+export const loginWithEmail = async (payload) => {
+  try {
+    console.log('📡 Auth API: Email login', payload.email);
+    const response = await api.post('/api/auth/login/email', payload);
+    console.log('✅ Auth API Response - Login Email:', response);
+    return response;
+  } catch (error) {
+    console.error('❌ Auth API Error - Login Email:', error);
+    throw error;
+  }
+};
+
 export const refreshToken = async () => {
   try {
     console.log('📡 Auth API: Refresh token');
@@ -50,6 +62,7 @@ export const registerWithEmail = async (payload) => {
 
 export default {
   login,
+  loginWithEmail,
   refreshToken,
   getCurrentUser,
   registerWithEmail

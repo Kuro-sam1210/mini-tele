@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Copy, Check, Clock } from 'lucide-react';
 import { useApi } from '../contexts/ApiContext';
 import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const Wallet = () => {
   const tg = window.Telegram?.WebApp;
@@ -10,6 +11,7 @@ const Wallet = () => {
   const navigate = useNavigate();
   const { createWithdrawal } = useApi();
   const toast = useToast();
+  const { isAuthenticated } = useAuth();
 
   const isDepositRoute = location.pathname.endsWith('/wallet/deposit') || location.pathname.endsWith('/wallet');
   const isWithdrawRoute = location.pathname.endsWith('/wallet/withdraw');
@@ -287,17 +289,28 @@ const Wallet = () => {
     return renderDepositForm();
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="page pb-24 p-4 space-y-6">
+        <div className="header-bar">
+          <span className="font-bold text-white text-lg">Wallet</span>
+        </div>
+        <div className="card p-4 bg-black/40 border border-yellow-500/40 rounded-2xl text-center space-y-2">
+          <p className="text-sm text-yellow-400 font-semibold">
+            Please log in to access your wallet.
+          </p>
+          <p className="text-xs text-[var(--text-muted)]">
+            Sign in to view your USDT balance, deposit, and withdraw funds.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page pb-24 p-4 space-y-6">
       <div className="header-bar">
         <span className="font-bold text-white text-lg">Wallet</span>
-        {/* <button
-          type="button"
-          className="ml-auto flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-white transition-colors"
-        >
-          <Clock className="w-4 h-4" />
-          <span>Transactions</span>
-        </button> */}
       </div>
 
       <div className="flex gap-2 bg-black/40 border border-white/10 rounded-2xl p-1">
