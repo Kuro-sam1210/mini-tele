@@ -79,7 +79,7 @@ function AppContent() {
     if (isLoading) {
       initializeApp();
     }
-  }, [isLoading, isConnected, user, loginWithDemo, toast, tg]);
+  }, [isLoading]); // Only depend on isLoading since tg is global and other deps aren't needed for the redirect logic
 
   if (isLoading) {
     return (
